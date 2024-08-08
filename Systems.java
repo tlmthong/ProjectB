@@ -1,7 +1,7 @@
 import java.util.*;
 
 interface verifyAccount {
-    void logIn(String username, String password);
+    boolean logIn(String username, String password);
 
     void logOut(String username);
 
@@ -33,46 +33,48 @@ class Systems implements verifyAccount {
                 + ". Email: " + email);
     }
 
-    public void logIn(String username, String password) {
+    public boolean logIn(String username, String password) {
         for (Map.Entry<Integer, FitnessUser> entry : this.accounts.entrySet()) {
             if (entry.getValue().getName().equals(username)) {
                 boolean sucess = entry.getValue().authorized(password);
                 if (sucess) {
                     if (this.signedInAccount.contains(entry.getValue())) {
                         System.out.println("Log In unsuccessfully, account logged in");
-                        return; // Check account is logged in -> exit
+                        return false; // Check account is logged in -> exit
                     }
                     this.signedInAccount.add(entry.getValue());
                     System.out.println("Log In successfully");
                     this.currentUser = entry.getValue();
-                    return;
+                    return true;
                 } else {
                     System.out.println("Log In unsuccessfully");
-                    return;
+                    return false;
                 }
             }
         }
+        return false;
     }
 
-    public void logIn(int id, String password) {
+    public boolean logIn(int id, String password) {
         try { // Try to see if the id existed
             FitnessUser logInUser = this.accounts.get(id);
             boolean sucess = logInUser.authorized(password);
             if (sucess) {
                 if (this.signedInAccount.contains(logInUser)) {
                     System.out.println("Log In successfully, Account already logged in");
-                    return;// Check account is logged in -> exit
+                    return false;// Check account is logged in -> exit
                 }
                 this.signedInAccount.add(logInUser);
                 System.out.println("Log In successfully");
                 this.currentUser = logInUser;
-                return;
+                return false;
             } else { // Incorrect Password
                 System.out.println("Log In unsuccessfully");
             }
         } catch (Exception e) { // Incorrect ID
             System.out.println("Log In unsuccessfully");
         }
+        return false;
 
     }
 
@@ -85,6 +87,30 @@ class Systems implements verifyAccount {
             } else {
                 System.out.println("Log Out unsuccessfully");
             }
+        }
+    }
+
+    public double getHeight() {
+        return this.currentUser.getHeight();
+    }
+
+    public double getWeight() {
+        return this.currentUser.getWeight();
+    }
+
+    public String getName() {
+        return this.currentUser.username;
+    }
+
+    public void changeUserName(String Name) {
+        if (this.currentUser != null) {
+            this.currentUser.username = Name;
+        }
+    }
+
+    public void changePassword(String Password) {
+        if (currentUser != null) {
+            this.currentUser.password = Password;
         }
     }
 
