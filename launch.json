@@ -1,0 +1,20 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "App",
+            "request": "launch",
+            "mainClass": "App",
+            "projectName": "Week - Copy (8)_4b3ab63",
+            "vmArgs": "--module-path \"c:\\Program Files\\Java\\javafx-sdk-22.0.2\\lib\" --add-modules javafx.controls,javafx.fxml"
+        },
+        {
+            "type": "java",
+            "name": "ButtonClick",
+            "request": "launch",
+            "mainClass": "ButtonClick",
+            "projectName": "Week - Copy (8)_4b3ab63",
+            "vmArgs": "--module-path \"c:\\Program Files\\Java\\javafx-sdk-22.0.2\\lib\" --add-modules javafx.controls,javafx.fxml"
+        }
+    ]
+}
