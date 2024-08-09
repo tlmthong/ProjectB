@@ -14,8 +14,8 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Log In Page");
         Systems system = new Systems();
-        system.addAccount("1", "1", "1", 0, 0, null, null);
-        AppView page = new AppView(system, primaryStage);
+        AppController controller = new AppController(system);
+        AppView page = new AppView(system, primaryStage, controller);
         Scene scene = new Scene(page.asParent(), 300, 300);
         primaryStage.setScene(scene);
         primaryStage.show();

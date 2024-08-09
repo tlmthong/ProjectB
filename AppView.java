@@ -7,12 +7,15 @@ import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.control.TextFormatter.Change;
 
-public class Log {
+public class AppView {
     private VBox view;
     TextField signInUser;
     TextField signInPassword;
@@ -24,8 +27,10 @@ public class Log {
     public SimpleBooleanProperty correct = new SimpleBooleanProperty(false);
     Goal goal;
     CalculateExcerciseCalories calculate;
+    AppController controller;
 
-    public Log(Systems system, Stage primaryStage) {
+    public AppView(Systems system, Stage primaryStage, AppController controller) {
+        this.controller = controller;
         this.system = system;
         createAndConfigurePane();
         createLayout();
@@ -51,7 +56,7 @@ public class Log {
             info.setText("Enter your email and password");
             stage.close();
         });
-        Label label = new Label(s.getName());
+        Label label = new Label(s.getName().getValue());
         HBox h = new HBox(label);
         h.setAlignment(Pos.CENTER);
         HBox h2 = new HBox(logButton);
@@ -64,11 +69,12 @@ public class Log {
 
     private void logInAccount(Stage primaryStage) {
         buttronIn.setOnAction(event -> {
-            if (system.logIn(signInUser.getText(), signInPassword.getText())) {
+            try {
+                controller.logIn(signInUser.getText(), signInPassword.getText());
                 info.setText("Log In SuccessFull");
                 correcProperty = new SimpleBooleanProperty(true);
                 inAccount(primaryStage, system);
-            } else {
+            } catch (Exception e) {
                 info.setText("Log In unsuccessful");
                 correcProperty = new SimpleBooleanProperty(false);
             }
@@ -89,15 +95,16 @@ public class Log {
         TextField password = new TextField();
         TextField email = new TextField();
         TextField height = new TextField();
+        configTextFieldForDoubles(height);
         TextField weight = new TextField();
+        configTextFieldForDoubles(weight);
         Button Submion = new Button("Submit");
         Label inform = new Label();
         Submion.setOnAction(event -> {
             if (goal != null && calculate != null) {
                 try {
-                    system.addAccount(username.getText(), password.getText(), email.getText(),
-                            Double.parseDouble(height.getText()), Double.parseDouble(weight.getText()), goal,
-                            calculate);
+                    controller.createAccount(username.getText(), password.getText(), email.getText(), weight.getText(),
+                            height.getText(), goal, calculate);
                     stage.close();
                 } catch (Exception e) {
                     inform.setText("Error");
@@ -157,6 +164,15 @@ public class Log {
     private void createAndConfigurePane() {
         view = new VBox(5);
         view.setAlignment(Pos.CENTER);
+    }
+
+    private void configTextFieldForDoubles(TextField field) {
+        field.setTextFormatter(new TextFormatter<Double>((Change c) -> {
+            if (c.getControlNewText().matches("-?\\d*")) {
+                return c;
+            }
+            return null;
+        }));
     }
 
 }

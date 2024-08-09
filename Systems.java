@@ -1,11 +1,13 @@
 import java.util.*;
+import javafx.beans.property.*;
 
 interface verifyAccount {
-    boolean logIn(String username, String password);
+    boolean logIn(SimpleStringProperty username, SimpleStringProperty password);
 
-    void logOut(String username);
+    void logOut(SimpleStringProperty username);
 
-    void addAccount(String username, String password, String email, double weight, double height, Goal goal,
+    void addAccount(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email,
+            SimpleDoubleProperty weight, SimpleDoubleProperty height, Goal goal,
             CalculateExcerciseCalories caloriesCalculation);
 }
 
@@ -21,7 +23,8 @@ class Systems implements verifyAccount {
         this.availableId = 0;
     }
 
-    public void addAccount(String username, String password, String email, double weight, double height, Goal goal,
+    public void addAccount(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email,
+            SimpleDoubleProperty weight, SimpleDoubleProperty height, Goal goal,
             CalculateExcerciseCalories caloriesCalculation) {
         Random ran = new Random();
         int increment = ran.nextInt(10) + 1;
@@ -33,10 +36,10 @@ class Systems implements verifyAccount {
                 + ". Email: " + email);
     }
 
-    public boolean logIn(String username, String password) {
+    public boolean logIn(SimpleStringProperty username, SimpleStringProperty password) {
         for (Map.Entry<Integer, FitnessUser> entry : this.accounts.entrySet()) {
-            if (entry.getValue().getName().equals(username)) {
-                boolean sucess = entry.getValue().authorized(password);
+            if (entry.getValue().getName().getValue().equals(username.get())) {
+                boolean sucess = entry.getValue().authorized(password).get();
                 if (sucess) {
                     if (this.signedInAccount.contains(entry.getValue())) {
                         System.out.println("Log In unsuccessfully, account logged in");
@@ -55,11 +58,11 @@ class Systems implements verifyAccount {
         return false;
     }
 
-    public boolean logIn(int id, String password) {
+    public boolean logIn(SimpleIntegerProperty id, SimpleStringProperty password) {
         try { // Try to see if the id existed
-            FitnessUser logInUser = this.accounts.get(id);
-            boolean sucess = logInUser.authorized(password);
-            if (sucess) {
+            FitnessUser logInUser = this.accounts.get(id.get());
+            SimpleBooleanProperty sucess = logInUser.authorized(password);
+            if (sucess.getValue()) {
                 if (this.signedInAccount.contains(logInUser)) {
                     System.out.println("Log In successfully, Account already logged in");
                     return false;// Check account is logged in -> exit
@@ -78,7 +81,7 @@ class Systems implements verifyAccount {
 
     }
 
-    public void logOut(String username) {
+    public void logOut(SimpleStringProperty username) {
         for (FitnessUser user : this.signedInAccount) {
             if (user.getName().equals(username)) {
                 this.signedInAccount.remove(user);
@@ -91,26 +94,26 @@ class Systems implements verifyAccount {
     }
 
     public double getHeight() {
-        return this.currentUser.getHeight();
+        return this.currentUser.getHeight().getValue();
     }
 
     public double getWeight() {
-        return this.currentUser.getWeight();
+        return this.currentUser.getWeight().getValue();
     }
 
-    public String getName() {
+    public SimpleStringProperty getName() {
         return this.currentUser.username;
     }
 
-    public void changeUserName(String Name) {
+    public void changeUserName(SimpleStringProperty Name) {
         if (this.currentUser != null) {
             this.currentUser.username = Name;
         }
     }
 
-    public void changePassword(String Password) {
+    public void changePassword(SimpleStringProperty Password) {
         if (currentUser != null) {
-            this.currentUser.password = Password;
+            this.currentUser.changePassword(Password);
         }
     }
 
