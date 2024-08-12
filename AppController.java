@@ -1,8 +1,5 @@
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
-
-import java.util.MissingFormatArgumentException;
-
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
@@ -29,7 +26,7 @@ public class AppController {
         SimpleStringProperty usernameProperty = new SimpleStringProperty(username);
         SimpleStringProperty passwordProperty = new SimpleStringProperty(password);
         SimpleBooleanProperty log = new SimpleBooleanProperty(sys.logIn(usernameProperty, passwordProperty));
-        if (!log.get()) {
+        if (!log.getValue()) {
             throw new Error("Cant logIn");
         }
     }
@@ -38,7 +35,7 @@ public class AppController {
         SimpleIntegerProperty idProperty = new SimpleIntegerProperty(id);
         SimpleStringProperty passwordProperty = new SimpleStringProperty(password);
         SimpleBooleanProperty log = new SimpleBooleanProperty(sys.logIn(idProperty, passwordProperty));
-        if (!log.get()) {
+        if (!log.getValue()) {
             throw new Error("Cant logIn");
         }
     }

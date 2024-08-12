@@ -3,7 +3,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
@@ -12,7 +11,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.scene.control.TextFormatter;
 import javafx.scene.control.TextFormatter.Change;
 
 public class AppView {
@@ -37,7 +35,6 @@ public class AppView {
         info.setText("Enter your email and password");
         logInAccount(primaryStage);
         signUpAccount(primaryStage);
-
     }
 
     public Parent asParent() {
@@ -74,7 +71,7 @@ public class AppView {
                 info.setText("Log In SuccessFull");
                 correcProperty = new SimpleBooleanProperty(true);
                 inAccount(primaryStage, system);
-            } catch (Exception e) {
+            } catch (Error e) {
                 info.setText("Log In unsuccessful");
                 correcProperty = new SimpleBooleanProperty(false);
             }

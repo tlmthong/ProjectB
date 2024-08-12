@@ -38,8 +38,8 @@ class Systems implements verifyAccount {
 
     public boolean logIn(SimpleStringProperty username, SimpleStringProperty password) {
         for (Map.Entry<Integer, FitnessUser> entry : this.accounts.entrySet()) {
-            if (entry.getValue().getName().getValue().equals(username.get())) {
-                boolean sucess = entry.getValue().authorized(password).get();
+            if (entry.getValue().getName().getValue().equals(username.getValue())) {
+                boolean sucess = entry.getValue().authorized(password).getValue();
                 if (sucess) {
                     if (this.signedInAccount.contains(entry.getValue())) {
                         System.out.println("Log In unsuccessfully, account logged in");
@@ -60,7 +60,7 @@ class Systems implements verifyAccount {
 
     public boolean logIn(SimpleIntegerProperty id, SimpleStringProperty password) {
         try { // Try to see if the id existed
-            FitnessUser logInUser = this.accounts.get(id.get());
+            FitnessUser logInUser = this.accounts.get(id.getValue());
             SimpleBooleanProperty sucess = logInUser.authorized(password);
             if (sucess.getValue()) {
                 if (this.signedInAccount.contains(logInUser)) {
@@ -115,6 +115,14 @@ class Systems implements verifyAccount {
         if (currentUser != null) {
             this.currentUser.changePassword(Password);
         }
+    }
+
+    public ArrayList<FitnessUser> getAllFitnessUsers() {
+        ArrayList<FitnessUser> loggedIn = new ArrayList<>();
+        for (Map.Entry<Integer, FitnessUser> entry : this.accounts.entrySet()) {
+            loggedIn.add(entry.getValue());
+        }
+        return loggedIn;
     }
 
     public String toString() {

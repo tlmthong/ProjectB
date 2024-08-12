@@ -94,8 +94,8 @@ public class FitnessUser extends User implements UserAuthentication {
 
     public SimpleStringProperty encrypt(SimpleStringProperty password) {
         String encryptString = "";
-        for (int i = 0; i < password.get().length(); i++) {
-            char currChar = password.get().charAt(i);
+        for (int i = 0; i < password.getValue().length(); i++) {
+            char currChar = password.getValue().charAt(i);
             encryptString += this.encryptionMap.get(currChar);
         }
         SimpleStringProperty encryptPassword = new SimpleStringProperty(encryptString);
@@ -340,15 +340,15 @@ class DailyLog {
     }
 
     int getIntYear() {
-        return this.year.get();
+        return this.year.getValue();
     }
 
     int getIntMonth() {
-        return this.months.get();
+        return this.months.getValue();
     }
 
     int getIntDay() {
-        return this.days.get();
+        return this.days.getValue();
     }
 
     List<Feature> getFeatures() {
@@ -498,5 +498,19 @@ class FitnessHistory {
 
     public String toString() {
         return "Currently holding " + this.history.size() + " Daily Logs.";
+    }
+}
+
+class AdminUser extends User {
+    Systems supervisedSystem;
+
+    AdminUser(Systems supervisedSystem, SimpleStringProperty username, SimpleStringProperty password,
+            SimpleStringProperty email) {
+        super(username, password, email);
+        this.supervisedSystem = supervisedSystem;
+    }
+
+    public ArrayList<FitnessUser> getAllLoggedInAccount() {
+        return this.supervisedSystem.getAllFitnessUsers();
     }
 }
