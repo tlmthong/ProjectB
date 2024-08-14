@@ -1,9 +1,16 @@
+import java.io.EOFException;
+
+import javafx.beans.Observable;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -26,15 +33,21 @@ public class AppView {
     Goal goal;
     CalculateExcerciseCalories calculate;
     AppController controller;
+    Button adminButton;
+    AdminUser admin;
+    ListView<FitnessUser> listView;
+    ObservableList<FitnessUser> createdAccount;
 
-    public AppView(Systems system, Stage primaryStage, AppController controller) {
+    public AppView(Systems system, Stage primaryStage, AppController controller, AdminUser admin) {
         this.controller = controller;
         this.system = system;
+        this.admin = admin;
         createAndConfigurePane();
         createLayout();
         info.setText("Enter your email and password");
         logInAccount(primaryStage);
         signUpAccount(primaryStage);
+        goToAdmin(primaryStage);
     }
 
     public Parent asParent() {
@@ -82,6 +95,65 @@ public class AppView {
         signUpButton.setOnAction(event -> {
             signUpWindow(primaryStage);
         });
+    }
+
+    private void goToAdmin(Stage primaryStage) {
+        adminButton.setOnAction(e -> {
+            adminWindow(primaryStage);
+        });
+    }
+
+    private void adminWindow(Stage primaryStage) {
+        listView = new ListView<>();
+        createdAccount = FXCollections.observableArrayList(admin.getAllLoggedInAccount());
+        listView.setItems(createdAccount);
+        Stage stage = new Stage();
+        stage.initOwner(primaryStage);
+
+        // Make it modal
+        stage.initModality(Modality.APPLICATION_MODAL);
+        Button removeButton = new Button("Remove Account");
+        removeButton.setOnAction(e -> {
+            removeAccoutWindow(primaryStage);
+        });
+        HBox remove = new HBox(removeButton);
+        remove.setAlignment(Pos.CENTER);
+        VBox listAccount = new VBox(5, listView, remove);
+        Scene listingAccount = new Scene(listAccount, 500, 500);
+        stage.setScene(listingAccount);
+        stage.setTitle("Created accounts");
+        stage.show();
+    }
+
+    private void removeAccoutWindow(Stage primaryStage) {
+        Stage stage = new Stage();
+        stage.initOwner(primaryStage);
+
+        // Make it modal
+        stage.initModality(Modality.APPLICATION_MODAL);
+        Label idLabel = new Label("Please enter the id you want to remove");
+        TextField idField = new TextField();
+        configTextFieldForDoubles(idField);
+        Label keyLabel = new Label("Please enter the your key");
+        TextField keyField = new TextField();
+        Button Submit = new Button();
+        Submit.setOnAction(e -> {
+            if (controller.verifyKey(keyField.getText())) {
+                try {
+                    controller.removeAccout(idField.getText());
+                } catch (Error except) {
+                    createdAccount.setAll(admin.getAllLoggedInAccount());
+                    listView.setItems(createdAccount);
+                    stage.close();
+                }
+            }
+
+        });
+        VBox removeBox = new VBox(5, idLabel, idField, keyLabel, keyField, Submit);
+        Scene listingAccount = new Scene(removeBox, 500, 500);
+        stage.setScene(listingAccount);
+        stage.show();
+
     }
 
     private void signUpWindow(Stage primaryStage) {
@@ -147,6 +219,7 @@ public class AppView {
         buttronIn = new Button("Sign In");
         info = new Label();
         signUpButton = new Button("Sign Up");
+        adminButton = new Button("Go to admin mode");
         HBox signInRow = new HBox(5, signInUser, signInPassword);
         signInRow.setAlignment(Pos.CENTER);
         HBox signInBut = new HBox(5, buttronIn);
@@ -155,7 +228,7 @@ public class AppView {
         information.setAlignment(Pos.CENTER);
         HBox signUp = new HBox(5, signUpButton);
         signUp.setAlignment(Pos.CENTER);
-        view.getChildren().addAll(signInRow, signInBut, information, signUp);
+        view.getChildren().addAll(signInRow, signInBut, information, signUp, adminButton);
     }
 
     private void createAndConfigurePane() {

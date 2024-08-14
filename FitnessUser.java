@@ -171,8 +171,10 @@ public class FitnessUser extends User implements UserAuthentication {
         d.setDailyBMI(this.bmi);
         int position = this.history.getHistory().indexOf(d);
         int previousPos = position - 1;
-
-        if (position > 0) {
+        while (this.history.getHistory().get(previousPos).getBMI() == null && previousPos >= 0) {
+            previousPos--;
+        }
+        if (position > 0 && previousPos >= 0) {
             SimpleDoubleProperty currentBMI = this.history.getHistory().get(position).getBMI();
             SimpleDoubleProperty previousBMI = this.history.getHistory().get(previousPos).getBMI();
             double improve = (currentBMI.doubleValue() - previousBMI.doubleValue()) / 100;
@@ -216,7 +218,7 @@ public class FitnessUser extends User implements UserAuthentication {
 
     @Override
     public String toString() {
-        return super.toString() + ". BMI: " + this.bmi;
+        return super.toString() + ". BMI: " + this.bmi.getValue();
     }
 }
 
@@ -238,7 +240,7 @@ abstract class User {
     }
 
     public String toString() {
-        return "User name: " + this.username + ". Email:" + this.email;
+        return "User name: " + this.username.getValue() + ". Email:" + this.email.getValue();
     }
 }
 
@@ -513,4 +515,9 @@ class AdminUser extends User {
     public ArrayList<FitnessUser> getAllLoggedInAccount() {
         return this.supervisedSystem.getAllFitnessUsers();
     }
+
+    public boolean VerifyKey(SimpleStringProperty key) {
+        return key == this.password;
+    }
+
 }

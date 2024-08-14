@@ -1,5 +1,6 @@
 
 import javafx.application.Application;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -8,8 +9,10 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Log In Page");
         Systems system = new Systems();
-        AppController controller = new AppController(system);
-        AppView page = new AppView(system, primaryStage, controller);
+        AdminUser admin = new AdminUser(system, new SimpleStringProperty("1"), new SimpleStringProperty("1"),
+                new SimpleStringProperty("1"));
+        AppController controller = new AppController(system, admin);
+        AppView page = new AppView(system, primaryStage, controller, admin);
         Scene scene = new Scene(page.asParent(), 300, 300);
         primaryStage.setScene(scene);
         primaryStage.show();

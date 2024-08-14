@@ -6,9 +6,11 @@ import javafx.beans.property.SimpleDoubleProperty;
 public class AppController {
     Systems sys;
     Feature feature;
+    AdminUser admin;
 
-    AppController(Systems sys) {
+    AppController(Systems sys, AdminUser admin) {
         this.sys = sys;
+        this.admin = admin;
     }
 
     public void createAccount(String username, String password, String email,
@@ -51,6 +53,16 @@ public class AppController {
             return;
         }
         sys.currentUser.getFitnessHistory().addOrUpdateDailyLog(dailyLog);
+    }
+
+    public void removeAccout(String idString) {
+        int id = convertStringToInt(idString);
+        sys.removeAccount(new SimpleIntegerProperty(id));
+    }
+
+    public boolean verifyKey(String key) {
+        SimpleStringProperty keyPropery = new SimpleStringProperty(key);
+        return admin.VerifyKey(keyPropery);
     }
 
     private int convertStringToInt(String s) {

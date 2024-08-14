@@ -1,3 +1,4 @@
+import java.io.EOFException;
 import java.util.*;
 import javafx.beans.property.*;
 
@@ -115,6 +116,15 @@ class Systems implements verifyAccount {
         if (currentUser != null) {
             this.currentUser.changePassword(Password);
         }
+    }
+
+    public void removeAccount(SimpleIntegerProperty id) {
+        try {
+            this.accounts.remove(id.getValue());
+            throw new Error("Removed");
+        } catch (Exception e) {
+        }
+
     }
 
     public ArrayList<FitnessUser> getAllFitnessUsers() {
