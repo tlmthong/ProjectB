@@ -1,24 +1,33 @@
 import java.io.EOFException;
-
 import javafx.beans.Observable;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.scene.control.TextFormatter.Change;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 public class AppView {
     private VBox view;
@@ -48,6 +57,152 @@ public class AppView {
         logInAccount(primaryStage);
         signUpAccount(primaryStage);
         goToAdmin(primaryStage);
+    }
+
+    private void showViewFitnessHistoryWindow() {
+        System.out.println("Entering showViewFitnessHistoryWindow method");
+        try {
+            Stage stage = new Stage();
+            stage.initModality(Modality.APPLICATION_MODAL);
+            stage.setTitle("View Fitness History");
+    
+            TableView<AppController.DailyLogEntry> table = new TableView<>();
+            
+            // Set up table columns
+            TableColumn<AppController.DailyLogEntry, Integer> idColumn = new TableColumn<>("No.");
+            idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+            
+            TableColumn<AppController.DailyLogEntry, String> dateColumn = new TableColumn<>("Date");
+            dateColumn.setCellValueFactory(new PropertyValueFactory<>("date"));
+            
+            TableColumn<AppController.DailyLogEntry, Double> improvementColumn = new TableColumn<>("Improvement %");
+            improvementColumn.setCellValueFactory(new PropertyValueFactory<>("improvementPercentage"));
+            improvementColumn.setCellFactory(column -> new TableCell<AppController.DailyLogEntry, Double>() {
+                @Override
+                protected void updateItem(Double item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                    } else {
+                        setText(String.format("%.14f%%", item));
+                    }
+                }
+            });
+            
+            TableColumn<AppController.DailyLogEntry, String> exercisesColumn = new TableColumn<>("Exercises");
+            exercisesColumn.setCellValueFactory(new PropertyValueFactory<>("exercises"));
+    
+            TableColumn<AppController.DailyLogEntry, Void> actionsColumn = new TableColumn<>("Actions");
+            actionsColumn.setCellFactory(column -> {
+                return new TableCell<AppController.DailyLogEntry, Void>() {
+                    private final Button editButton = new Button("Edit");
+                    private final Button deleteButton = new Button("Delete");
+                    {
+                        editButton.setOnAction(event -> {
+                            AppController.DailyLogEntry entry = getTableView().getItems().get(getIndex());
+                            showEditDialog(entry, table);
+                        });
+                        deleteButton.setOnAction(event -> {
+                            AppController.DailyLogEntry entry = getTableView().getItems().get(getIndex());
+                            controller.deleteDailyLog(entry);
+                            table.setItems(controller.getFitnessHistoryData()); // Refresh the table
+                        });
+                    }
+    
+                    @Override
+                    protected void updateItem(Void item, boolean empty) {
+                        super.updateItem(item, empty);
+                        if (empty) {
+                            setGraphic(null);
+                        } else {
+                            HBox buttons = new HBox(5, editButton, deleteButton);
+                            setGraphic(buttons);
+                        }
+                    }
+                };
+            });
+            
+            table.getColumns().addAll(idColumn, dateColumn, improvementColumn, exercisesColumn, actionsColumn);
+            
+            System.out.println("About to call getFitnessHistoryData");
+            ObservableList<AppController.DailyLogEntry> data = controller.getFitnessHistoryData();
+            System.out.println("Data size: " + data.size());
+            
+            // Print out the contents of the data
+            for (AppController.DailyLogEntry entry : data) {
+                System.out.println("Entry: ID=" + entry.getId() + ", Date=" + entry.getDate() + 
+                                   ", Improvement=" + entry.getImprovementPercentage() + 
+                                   ", Exercises=" + entry.getExercises());
+            }
+            
+            table.setItems(data);
+    
+            VBox layout = new VBox(10);
+            layout.setPadding(new Insets(20));
+            layout.getChildren().addAll(new Label("Fitness History:"), table);
+    
+            Scene scene = new Scene(layout, 800, 600);
+            stage.setScene(scene);
+            System.out.println("About to show stage");
+            stage.show();
+            System.out.println("Stage shown");
+        } catch (Exception e) {
+            System.err.println("Error in showViewFitnessHistoryWindow: " + e.getMessage());
+            e.printStackTrace();
+            showAlert("Error", "An error occurred while loading fitness history: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
+    }
+
+    private void showEditDialog(AppController.DailyLogEntry entry, TableView<AppController.DailyLogEntry> table) {
+        Stage dialog = new Stage();
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.setTitle("Edit Daily Log");
+    
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+    
+        TextField dateField = new TextField(entry.getDate());
+        TextField improvementField = new TextField(String.format("%.14f", entry.getImprovementPercentage()));
+        TextArea exercisesArea = new TextArea(entry.getExercises());
+    
+        grid.add(new Label("Date:"), 0, 0);
+        grid.add(dateField, 1, 0);
+        grid.add(new Label("Improvement %:"), 0, 1);
+        grid.add(improvementField, 1, 1);
+        grid.add(new Label("Exercises:"), 0, 2);
+        grid.add(exercisesArea, 1, 2);
+    
+        Button saveButton = new Button("Save");
+        saveButton.setOnAction(e -> {
+            try {
+                double newImprovement = Double.parseDouble(improvementField.getText());
+                controller.editDailyLog(entry, dateField.getText(), newImprovement, exercisesArea.getText());
+                table.setItems(controller.getFitnessHistoryData()); // Refresh the table
+                dialog.close();
+            } catch (NumberFormatException ex) {
+                // Show error message
+                showAlert("Invalid Input", "Please enter a valid number for improvement percentage.");
+            } catch (Exception ex) {
+                // Show error message
+                showAlert("Error", "An error occurred while saving: " + ex.getMessage());
+            }
+        });
+    
+        grid.add(saveButton, 1, 3);
+    
+        Scene dialogScene = new Scene(grid, 400, 300);
+        dialog.setScene(dialogScene);
+        dialog.showAndWait();
+    }
+
+    private void showAlert(String title, String content) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     public Parent asParent() {
@@ -83,6 +238,7 @@ public class AppView {
                 controller.logIn(signInUser.getText(), signInPassword.getText());
                 info.setText("Log In SuccessFull");
                 correcProperty = new SimpleBooleanProperty(true);
+                showMainMenu();
                 inAccount(primaryStage, system);
             } catch (Error e) {
                 info.setText("Log In unsuccessful");
@@ -229,6 +385,161 @@ public class AppView {
         HBox signUp = new HBox(5, signUpButton);
         signUp.setAlignment(Pos.CENTER);
         view.getChildren().addAll(signInRow, signInBut, information, signUp, adminButton);
+
+    }
+
+    private void showMainMenu() {
+        view.getChildren().clear();
+        Label welcomeLabel = new Label("Welcome, " + system.currentUser.getName().get());
+        Button addExerciseButton = new Button("Add Exercise");
+        addExerciseButton.setOnAction(event -> showAddExerciseWindow());
+        Button viewDailyLogButton = new Button("View Daily Log");
+        viewDailyLogButton.setOnAction(event -> showViewDailyLogWindow());
+        Button viewFitnessHistoryButton = new Button("View Fitness History");
+        viewFitnessHistoryButton.setOnAction(event -> {
+            System.out.println("View Fitness History button clicked");
+            showViewFitnessHistoryWindow();
+        });
+        Button logOutButton = new Button("Log Out");
+        logOutButton.setOnAction(event -> {
+            system.logOut(system.currentUser.getName());
+            view.getChildren().clear();
+            createLoginLayout();
+        });
+        view.getChildren().addAll(welcomeLabel, addExerciseButton, viewDailyLogButton, viewFitnessHistoryButton, logOutButton);
+    }
+
+        private void showViewDailyLogWindow() {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("View Daily Log");
+
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20));
+
+        TextField dayField = new TextField();
+        dayField.setPromptText("Day");
+        TextField monthField = new TextField();
+        monthField.setPromptText("Month");
+        TextField yearField = new TextField();
+        yearField.setPromptText("Year");
+
+        TextArea logInfoArea = new TextArea();
+        logInfoArea.setEditable(false);
+        logInfoArea.setWrapText(true);
+
+        Button viewButton = new Button("View Log");
+        viewButton.setOnAction(e -> {
+            try {
+                SimpleIntegerProperty day = new SimpleIntegerProperty(Integer.parseInt(dayField.getText()));
+                SimpleIntegerProperty month = new SimpleIntegerProperty(Integer.parseInt(monthField.getText()));
+                SimpleIntegerProperty year = new SimpleIntegerProperty(Integer.parseInt(yearField.getText()));
+
+                DailyLog dailyLog = controller.viewDailyLog(day, month, year);
+                String logInfo = controller.formatDailyLogInfo(dailyLog);
+                logInfoArea.setText(logInfo);
+            } catch (NumberFormatException ex) {
+                logInfoArea.setText("Invalid input. Please enter valid numbers for the date.");
+            } catch (Exception ex) {
+                logInfoArea.setText("Error viewing daily log: " + ex.getMessage());
+            }
+        });
+
+        layout.getChildren().addAll(
+            new Label("Enter the date to view (DD MM YYYY):"),
+            dayField, monthField, yearField,
+            viewButton,
+            logInfoArea
+        );
+
+        Scene scene = new Scene(layout, 400, 500);
+        stage.setScene(scene);
+        stage.show();
+    }
+
+    private void createLoginLayout() {
+        signInUser = new TextField();
+        signInPassword = new TextField();
+        buttronIn = new Button("Sign In");
+        info = new Label();
+        signUpButton = new Button("Sign Up");
+        HBox signInRow = new HBox(5, signInUser, signInPassword);
+        signInRow.setAlignment(Pos.CENTER);
+        HBox signInBut = new HBox(5, buttronIn);
+        signInBut.setAlignment(Pos.CENTER);
+        HBox information = new HBox(5, info);
+        information.setAlignment(Pos.CENTER);
+        HBox signUp = new HBox(5, signUpButton);
+        signUp.setAlignment(Pos.CENTER);
+        view.getChildren().addAll(signInRow, signInBut, information, signUp);
+    }
+
+    private void showAddExerciseWindow() {
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Add Exercise");
+    
+        VBox layout = new VBox(10);
+        layout.setPadding(new Insets(20));
+    
+        TextField dayField = new TextField();
+        dayField.setPromptText("Day");
+        TextField monthField = new TextField();
+        monthField.setPromptText("Month");
+        TextField yearField = new TextField();
+        yearField.setPromptText("Year");
+    
+        TextField exerciseTypeField = new TextField();
+        exerciseTypeField.setPromptText("Enter exercise type (e.g., PUSH_UPS)");
+    
+        TextField repetitionsField = new TextField();
+        repetitionsField.setPromptText("Enter number of repetitions");
+    
+        Button addButton = new Button("Add Exercise");
+        addButton.setOnAction(e -> {
+            try {
+                SimpleIntegerProperty day = new SimpleIntegerProperty(Integer.parseInt(dayField.getText()));
+                SimpleIntegerProperty month = new SimpleIntegerProperty(Integer.parseInt(monthField.getText()));
+                SimpleIntegerProperty year = new SimpleIntegerProperty(Integer.parseInt(yearField.getText()));
+                
+                String exerciseTypeStr = exerciseTypeField.getText().toUpperCase();
+                ExerciseType exerciseType = ExerciseType.valueOf(exerciseTypeStr);
+                
+                SimpleIntegerProperty repetitions = new SimpleIntegerProperty(Integer.parseInt(repetitionsField.getText()));
+    
+                controller.addExercise(day, month, year, exerciseType, repetitions);
+                showAlert("Success", "Exercise added successfully.", Alert.AlertType.INFORMATION);
+                stage.close();
+            } catch (NumberFormatException ex) {
+                showAlert("Error", "Invalid input. Please enter valid numbers for day, month, year, and repetitions.", Alert.AlertType.ERROR);
+            } catch (IllegalArgumentException ex) {
+                showAlert("Error", "Invalid exercise type. Please enter a valid exercise type (e.g., PUSH_UPS, SIT_UPS, etc.).", Alert.AlertType.ERROR);
+            } catch (Exception ex) {
+                showAlert("Error", "Error adding exercise: " + ex.getMessage(), Alert.AlertType.ERROR);
+            }
+        });
+    
+        layout.getChildren().addAll(
+            new Label("Enter the date for these exercises (DD MM YYYY):"),
+            dayField, monthField, yearField,
+            new Label("Enter exercise type:"),
+            exerciseTypeField,
+            new Label("Enter number of repetitions:"),
+            repetitionsField,
+            addButton
+        );
+    
+        Scene scene = new Scene(layout);
+        stage.setScene(scene);
+        stage.showAndWait();
+    }
+    
+    private void showAlert(String title, String content, Alert.AlertType alertType) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(content);
+        alert.showAndWait();
     }
 
     private void createAndConfigurePane() {
