@@ -557,3 +557,88 @@ public class AppView {
     }
 
 }
+
+ public void modifyExerciseWindow(Stage primaryStage) {
+        Stage stage = new Stage();
+        stage.initOwner(primaryStage);
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        Label dateLabel = new Label("Enter Date (yyyy-mm-dd):");
+        TextField dateField = new TextField();
+        Label exerciseLabel = new Label("Enter Exercise Name:");
+        TextField exerciseField = new TextField();
+        Label durationLabel = new Label("Enter Duration (minutes):");
+        TextField durationField = new TextField();
+        configTextFieldForDoubles(durationField);
+
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(event -> {
+            try {
+                String date = dateField.getText();
+                String exerciseName = exerciseField.getText();
+                double duration = Double.parseDouble(durationField.getText());
+                controller.modifyExercise(date, exerciseName, duration);
+                viewModifiedExercises(primaryStage);
+                stage.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        VBox layout = new VBox(10, dateLabel, dateField, exerciseLabel, exerciseField, durationLabel, durationField, submitButton);
+        layout.setAlignment(Pos.CENTER);
+        Scene scene = new Scene(layout, 300, 300);
+        stage.setScene(scene);
+        stage.setTitle("Modify Exercise");
+        stage.show();
+    }
+
+    public void viewModifiedExercises(Stage primaryStage) {
+        Stage stage = new Stage();
+        stage.initOwner(primaryStage);
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        Label label = new Label("Modified Exercises");
+      
+        ListView<String> listView = new ListView<>();
+        listView.setItems(FXCollections.observableArrayList("Exercise 1", "Exercise 2"));
+
+        VBox layout = new VBox(10, label, listView);
+        layout.setAlignment(Pos.CENTER);
+        Scene scene = new Scene(layout, 300, 300);
+        stage.setScene(scene);
+        stage.setTitle("View Modified Exercises");
+        stage.show();
+    }
+
+    public void addSleepWindow(Stage primaryStage) {
+        Stage stage = new Stage();
+        stage.initOwner(primaryStage);
+        stage.initModality(Modality.APPLICATION_MODAL);
+
+        Label dateLabel = new Label("Enter Date (yyyy-mm-dd):");
+        TextField dateField = new TextField();
+        Label hoursLabel = new Label("Enter Hours of Sleep:");
+        TextField hoursField = new TextField();
+        configTextFieldForDoubles(hoursField);
+
+        Button submitButton = new Button("Submit");
+        submitButton.setOnAction(event -> {
+            try {
+                String date = dateField.getText();
+                double hours = Double.parseDouble(hoursField.getText());
+                controller.addSleep(date, hours);
+                stage.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        VBox layout = new VBox(10, dateLabel, dateField, hoursLabel, hoursField, submitButton);
+        layout.setAlignment(Pos.CENTER);
+        Scene scene = new Scene(layout, 300, 300);
+        stage.setScene(scene);
+        stage.setTitle("Add Sleep");
+        stage.show();
+    }
+}
