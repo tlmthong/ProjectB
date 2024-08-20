@@ -2,15 +2,17 @@ import java.util.*;
 import javafx.beans.property.*;
 
 public class FitnessUser extends User implements UserAuthentication {
-    private SimpleDoubleProperty weight;
-    private SimpleDoubleProperty height;
-    private Goal goal;
+    SimpleDoubleProperty weight;
+    SimpleDoubleProperty height;
+    Goal goal;
     private SimpleStringProperty password;
-    private CalculateExcerciseCalories caloriesCalculation;
+    CalculateExcerciseCalories caloriesCalculation;
     private HashMap<Character, Character> encryptionMap = new HashMap<>();
-    private FitnessHistory history = new FitnessHistory();
+    FitnessHistory history = new FitnessHistory();
     private SimpleDoubleProperty calorieBalance = new SimpleDoubleProperty(0);
-    private final SimpleDoubleProperty bmi = new SimpleDoubleProperty();
+    private SimpleDoubleProperty bmi;
+    public SimpleDoubleProperty initialBMI;
+    public SimpleDoubleProperty initialWeight;
 
     FitnessUser(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email,
             SimpleDoubleProperty weight, SimpleDoubleProperty height, Goal goal,
@@ -21,7 +23,9 @@ public class FitnessUser extends User implements UserAuthentication {
         this.caloriesCalculation = caloriesCalculation;
         this.goal = goal;
         this.password = password;
-        this.bmi.bind(weight.divide((height.doubleValue() * height.doubleValue())));
+        this.bmi = new SimpleDoubleProperty(weight.divide((height.doubleValue() * height.doubleValue())).doubleValue());
+        this.initialBMI = this.bmi;
+        this.initialWeight = this.weight;
         this.encryptionMap.put('a', 'm');
         this.encryptionMap.put('b', 'n');
         this.encryptionMap.put('c', 'o');
@@ -87,7 +91,13 @@ public class FitnessUser extends User implements UserAuthentication {
         return this.goal;
     }
 
-    public void updateBMI(DailyLog d) {
+    public void setBmi(SimpleDoubleProperty bmi) {
+        this.bmi = bmi;
+    }
+
+    public void updateBMI(SimpleDoubleProperty weightProperty, DailyLog d) {
+        this.bmi = new SimpleDoubleProperty(
+                weightProperty.divide((this.height.doubleValue() * this.height.doubleValue())).doubleValue());
 
         d.setDailyBMI(this.bmi);
     }
@@ -161,20 +171,58 @@ public class FitnessUser extends User implements UserAuthentication {
                 }
             }
         }
+        System.out.println("cal" + calBurn);
         for (PhysicalMonitor f : getPhysicalList(d)) {
             ((PhysicalMonitor) f).setCaloriesBurnt(new SimpleDoubleProperty(calBurn));
         }
     }
 
+    // void calculateImprovement(DailyLog d, Goal g) {
+    // adjustWeight(d);
+    // d.setDailyBMI(this.bmi);
+    // int position = this.history.getHistory().indexOf(d);
+    // int previousPos = position - 1;
+    // while (this.history.getHistory().get(previousPos).getBMI() == null &&
+    // previousPos >= 0) {
+    // previousPos--;
+    // }
+    // if (position > 0 && previousPos >= 0) {
+    // SimpleDoubleProperty currentBMI =
+    // this.history.getHistory().get(position).getBMI();
+    // SimpleDoubleProperty previousBMI =
+    // this.history.getHistory().get(previousPos).getBMI();
+    // double improve = (currentBMI.doubleValue() - previousBMI.doubleValue()) /
+    // 100;
+    // SimpleDoubleProperty improvement = new SimpleDoubleProperty(improve);
+    // SimpleDoubleProperty improvementGain = new SimpleDoubleProperty(-improve);
+    // SimpleDoubleProperty improvementMaintain = new
+    // SimpleDoubleProperty(Math.abs(improve) * -1);
+    // if (g.equals(Goal.LOSE_WEIGHT)) {
+    // d.setImprovementPercentage(improvementGain);// negative improvement is good
+    // for weight loss
+    // } else if (g.equals(Goal.GAIN_WEIGHT)) {
+    // d.setImprovementPercentage(improvement); // positive improvement is good for
+    // weight gain
+    // } else if (g.equals(Goal.MAINTAIN_WEIGHT)) {
+    // d.setImprovementPercentage(improvementMaintain); // any change is considered
+    // negative for
+    // // maintaining weight
+    // }
+    // } else {
+    // d.setImprovementPercentage(new SimpleDoubleProperty(0)); // No previous log
+    // to compare with
+    // }
+    // }
     void calculateImprovement(DailyLog d, Goal g) {
         adjustWeight(d);
         d.setDailyBMI(this.bmi);
         int position = this.history.getHistory().indexOf(d);
         int previousPos = position - 1;
-        while (this.history.getHistory().get(previousPos).getBMI() == null && previousPos >= 0) {
-            previousPos--;
-        }
-        if (position > 0 && previousPos >= 0) {
+        // while (this.history.getHistory().get(previousPos).getBMI() == null &&
+        // previousPos >= 0) {
+        // previousPos--;
+        // }
+        if (position > 0) {
             SimpleDoubleProperty currentBMI = this.history.getHistory().get(position).getBMI();
             SimpleDoubleProperty previousBMI = this.history.getHistory().get(previousPos).getBMI();
             double improve = (currentBMI.doubleValue() - previousBMI.doubleValue()) / 100;
@@ -191,7 +239,10 @@ public class FitnessUser extends User implements UserAuthentication {
             }
         } else {
             d.setImprovementPercentage(new SimpleDoubleProperty(0)); // No previous log to compare with
+            System.out.println("no");
+
         }
+        System.out.println(d.getBMI().getValue());
     }
 
     public void setCalories(DailyLog d) {
@@ -199,17 +250,20 @@ public class FitnessUser extends User implements UserAuthentication {
         for (PhysicalMonitor pm : getPhysicalList(d)) {
             cal += (d.caloriesComsume.getValue() - pm.getCaloriesBurnt().getValue() - d.getGeneralCal().getValue());
         }
-        this.calorieBalance.add(cal);
+        this.calorieBalance = new SimpleDoubleProperty(cal);
     }
 
     public void adjustWeight(DailyLog daily) {
         setCalories(daily);
-        double weightChangeKg = calorieBalance.getValue() * 3500 / 0.45;
-        this.weight.add(weightChangeKg);
+        System.out.println(calorieBalance);
+        double weightChangeKg = (calorieBalance.getValue() / 3500) * 0.45;
+        SimpleDoubleProperty newWeight = new SimpleDoubleProperty(this.weight.getValue() + weightChangeKg);
         // this.calorieBalance %= 3500; // Keep the remainder for future calculations
+        this.weight = newWeight;
 
         // Update BMI in the most recent DailyLog
-        this.updateBMI(daily);
+        System.out.println(this.weight.doubleValue() + "calbal");
+        this.updateBMI(this.weight, daily);
     }
 
     public void changePassword(SimpleStringProperty password) {
@@ -264,7 +318,7 @@ class DailyLog {
             .thenComparing(DailyLog::getIntMonth)
             .thenComparing(DailyLog::getIntDay);
     public SimpleDoubleProperty caloriesComsume;
-    private final SimpleStringProperty date = new SimpleStringProperty();
+    private SimpleStringProperty date = new SimpleStringProperty();
     private List<Feature> features;
     private SimpleDoubleProperty improvementPercentage;
     private SimpleDoubleProperty dailyBMI = new SimpleDoubleProperty(0);
@@ -276,7 +330,7 @@ class DailyLog {
         this.year = year;
         SimpleStringProperty dateString = new SimpleStringProperty(
                 this.days.getValue() + "/" + this.months.getValue() + "/" + this.year.getValue());
-        this.date.bind(dateString);
+        this.date = dateString;
         this.features = new ArrayList<Feature>();// use polymorphism here
         this.caloriesComsume = new SimpleDoubleProperty(2000);
         this.generalCalBurn = new SimpleDoubleProperty(0);
@@ -315,6 +369,30 @@ class DailyLog {
     public void addFeature(SimpleDoubleProperty hours) {
         StressMonitor stress = new StressMonitor(hours);
         this.features.add(stress);
+    }
+
+    public void setFeature(Exercise exercise) {
+        System.out.println("reached");
+        for (Feature feature : features) {
+            if (feature instanceof PhysicalMonitor) {
+                System.out.println("reached");
+                if (((PhysicalMonitor) feature).getExercises().getExerciseType().name
+                        .equals(exercise.getExerciseType().name)) {
+                    System.out.println(exercise.getHours() + " " + exercise.getCount());
+                    PhysicalMonitor physicalMonitor = new PhysicalMonitor();
+                    physicalMonitor.addExercise(exercise);
+                    features.remove(feature);
+                    features.add(physicalMonitor);
+                    System.out.println(((PhysicalMonitor) feature).getExercises().getHours());
+                    return;
+                }
+            }
+        }
+        throw new Error("can't find");
+    }
+
+    public void addFeature(Feature feature) {
+        this.features.add(feature);
     }
 
     public void addCalories(double cal) {
@@ -368,53 +446,75 @@ class DailyLog {
         return arr;
     }
 
-    public void viewDailyLog(CalculateExcerciseCalories calculate) {
-        System.out.println("--------------------------------");
-        System.out.println("Date: " + this.date);
-        System.out.println("BMI: " + this.dailyBMI);
-        System.out.println("Improvement Percentage: " + this.improvementPercentage + "%");
+    public SimpleStringProperty viewDailyLog(CalculateExcerciseCalories calculate) {
+        String detail = "";
+        detail += "Date: " + this.getDate().get() + "\n";
+        detail += "BMI: " + this.getBMI().get() + "\n";
+        detail += "Improvement Percentage: " + this.improvementPercentage.get() + "%" + "\n";
         SimpleDoubleProperty totalCal = new SimpleDoubleProperty();
         for (Feature feature : this.features) {
             if (feature instanceof PhysicalMonitor) {
                 totalCal.add(((PhysicalMonitor) feature).getCaloriesBurnt());
             }
         }
-        System.out.println("Calories Burnt from Exercises: " + totalCal.doubleValue());
+        detail += "Calories Burnt from Exercises: " + totalCal.doubleValue() + "\n";
 
         System.out.println("Exercises: ");
 
         if (this.getTotalExcercises() != null && !this.getTotalExcercises().isEmpty()) {
             for (Exercise e : this.getTotalExcercises()) {
                 if (calculate == CalculateExcerciseCalories.PER_EXCERCISE) {
-                    System.out.println("  - " + e.getExerciseType().name + ": \n     - Repetition: " + e.getCount());
+                    detail += "  - " + e.getExerciseType().name + ": \n     - Repetition: " + e.getCount().get() + "\n";
                 } else {
-                    System.out.println("  - " + e.getExerciseType().name + ": \n     - Hours: " + e.getHours());
+                    detail += "  - " + e.getExerciseType().name + ": \n     - Hours: " + e.getHours().get() + "\n";
                 }
             }
         } else {
             System.out.println("No exercises recorded for this day.");
         }
-        SimpleDoubleProperty totalSleep = new SimpleDoubleProperty();
+        Double totalSleep = 0.0;
         for (Feature feature : this.features) {
             if (feature instanceof StressMonitor) {
-                totalSleep.add(((StressMonitor) feature).getSleep());
+                totalSleep += ((StressMonitor) feature).getSleep().getValue();
             }
         }
 
-        System.out.println("Sleep Hours: " + totalSleep);
-        System.out.println("--------------------------------");
+        detail += "Sleep Hours: " + totalSleep;
+        return new SimpleStringProperty(detail);
 
     }
 
+    public ArrayList<PhysicalMonitor> getPhysicalMonitors() {
+        ArrayList<PhysicalMonitor> physicalMonitors = new ArrayList<>();
+        for (Feature feature : this.features) {
+            if (feature instanceof PhysicalMonitor) {
+                physicalMonitors.add(((PhysicalMonitor) feature));
+            }
+        }
+        return physicalMonitors;
+    }
+
+    public SimpleStringProperty getListExercise(CalculateExcerciseCalories cal) {
+        String list = "";
+        for (PhysicalMonitor physical : getPhysicalMonitors()) {
+            Exercise exercise = physical.getExercises();
+            if (cal == CalculateExcerciseCalories.PER_EXCERCISE) {
+                list += "- " + exercise.getExerciseType().name + ". Count: " + exercise.getCount().getValue() + "\n";
+            } else {
+                list += "- " + exercise.getExerciseType().name + ". Hours: " + exercise.getHours().getValue() + "\n";
+            }
+        }
+        return new SimpleStringProperty(list);
+    }
+
     public String toString() {
-        return "Date: " + this.date + ". BMI: " + this.dailyBMI + ". Improvement Percentage:"
-                + this.improvementPercentage + "%";
+        return "Date: " + this.date.getValue();
     }
 }
 
 class FitnessHistory {
     // holds the history of the user
-    private List<DailyLog> history;
+    private ArrayList<DailyLog> history;
     private SimpleIntegerProperty currentIndex = new SimpleIntegerProperty(0);
 
     FitnessHistory() {
@@ -446,9 +546,11 @@ class FitnessHistory {
     }
 
     public DailyLog getDailyLog(SimpleIntegerProperty day, SimpleIntegerProperty month, SimpleIntegerProperty year) {
-        SimpleStringProperty date = new SimpleStringProperty(day + "/" + month + "/" + year);
+        SimpleStringProperty date = new SimpleStringProperty(
+                day.getValue() + "/" + month.getValue() + "/" + year.getValue());
         for (DailyLog log : this.history) {
-            if (log.getDate().equals(date)) {
+            if (day.getValue() == log.getDays().getValue() && month.getValue() == log.getMonths().getValue()
+                    && year.getValue() == log.getYear().getValue()) {
                 return log;
             }
         }
@@ -462,6 +564,11 @@ class FitnessHistory {
             }
         }
         return daily;
+    }
+
+    public ArrayList<DailyLog> sortedHistory() {
+        Collections.sort(this.history, DailyLog.comparatorForDates);
+        return this.history;
     }
 
     // method to allow the user to view all of the history but with less details

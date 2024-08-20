@@ -1,6 +1,7 @@
 
 import javafx.application.Application;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -9,6 +10,9 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         primaryStage.setTitle("Log In Page");
         Systems system = new Systems();
+        system.addAccount(new SimpleStringProperty("1"), new SimpleStringProperty("1"), new SimpleStringProperty("1"),
+                new SimpleDoubleProperty(1), new SimpleDoubleProperty(1), Goal.GAIN_WEIGHT,
+                CalculateExcerciseCalories.DURATION_OF_EXCERCISE);
         AdminUser admin = new AdminUser(system, new SimpleStringProperty("1"), new SimpleStringProperty("1"),
                 new SimpleStringProperty("1"));
         AppController controller = new AppController(system, admin);
