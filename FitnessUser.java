@@ -23,7 +23,7 @@ public class FitnessUser extends User implements UserAuthentication {
         this.caloriesCalculation = caloriesCalculation;
         this.goal = goal;
         this.password = password;
-        this.bmi = new SimpleDoubleProperty(weight.divide((height.doubleValue() * height.doubleValue())).doubleValue());
+        this.bmi = new SimpleDoubleProperty(weight.doubleValue() / ((height.doubleValue() * height.doubleValue())));
         this.initialBMI = this.bmi;
         this.initialWeight = this.weight;
         this.encryptionMap.put('a', 'm');
@@ -97,7 +97,7 @@ public class FitnessUser extends User implements UserAuthentication {
 
     public void updateBMI(SimpleDoubleProperty weightProperty, DailyLog d) {
         this.bmi = new SimpleDoubleProperty(
-                weightProperty.divide((this.height.doubleValue() * this.height.doubleValue())).doubleValue());
+                weightProperty.doubleValue() / ((height.doubleValue() * height.doubleValue())));
 
         d.setDailyBMI(this.bmi);
     }
@@ -159,21 +159,23 @@ public class FitnessUser extends User implements UserAuthentication {
     }
 
     public void calculateCalories(DailyLog d) {
-        double calBurn = 0;
+        ArrayList<Double> calBurn = new ArrayList<>();
         if (d.getTotalExcercises() != null) {
             for (Exercise e : d.getTotalExcercises()) {
                 if (getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
-                    calBurn += (e.getExerciseType().METvalue.getValue() * this.getWeight().getValue())
-                            / (60 * e.getExerciseType().amountOfExercisePerMinute.getValue()) * e.getCount().getValue();
+                    calBurn.add((e.getExerciseType().METvalue.getValue() * this.getWeight().getValue())
+                            / (60 * e.getExerciseType().amountOfExercisePerMinute.getValue())
+                            * e.getCount().getValue());
                 } else {
-                    calBurn += e.getExerciseType().METvalue.getValue() * this.getWeight().doubleValue()
-                            * e.getHours().doubleValue();
+                    calBurn.add(e.getExerciseType().METvalue.getValue() * this.getWeight().doubleValue()
+                            * e.getHours().doubleValue());
                 }
             }
         }
         System.out.println("cal" + calBurn);
         for (PhysicalMonitor f : getPhysicalList(d)) {
-            ((PhysicalMonitor) f).setCaloriesBurnt(new SimpleDoubleProperty(calBurn));
+            ((PhysicalMonitor) f)
+                    .setCaloriesBurnt(new SimpleDoubleProperty(calBurn.get(getPhysicalList(d).indexOf(f))));
         }
     }
 
@@ -225,10 +227,12 @@ public class FitnessUser extends User implements UserAuthentication {
         if (position > 0) {
             SimpleDoubleProperty currentBMI = this.history.getHistory().get(position).getBMI();
             SimpleDoubleProperty previousBMI = this.history.getHistory().get(previousPos).getBMI();
-            double improve = (currentBMI.doubleValue() - previousBMI.doubleValue()) / 100;
+            double improve = ((currentBMI.doubleValue() - previousBMI.doubleValue()) / previousBMI.doubleValue()) * 100;
+            System.out.println("improve" + improve);
             SimpleDoubleProperty improvement = new SimpleDoubleProperty(improve);
-            SimpleDoubleProperty improvementGain = new SimpleDoubleProperty(-improve);
-            SimpleDoubleProperty improvementMaintain = new SimpleDoubleProperty(Math.abs(improve) * -1);
+            SimpleDoubleProperty improvementGain = new SimpleDoubleProperty(improve);
+            SimpleDoubleProperty improvementMaintain = new SimpleDoubleProperty(
+                    Math.round((Math.abs(improve)) * 1000) / 1000);
             if (g.equals(Goal.LOSE_WEIGHT)) {
                 d.setImprovementPercentage(improvementGain);// negative improvement is good for weight loss
             } else if (g.equals(Goal.GAIN_WEIGHT)) {
@@ -256,7 +260,7 @@ public class FitnessUser extends User implements UserAuthentication {
     public void adjustWeight(DailyLog daily) {
         setCalories(daily);
         System.out.println(calorieBalance);
-        double weightChangeKg = (calorieBalance.getValue() / 3500) * 0.45;
+        double weightChangeKg = (calorieBalance.getValue() * 45) / 350000;
         SimpleDoubleProperty newWeight = new SimpleDoubleProperty(this.weight.getValue() + weightChangeKg);
         // this.calorieBalance %= 3500; // Keep the remainder for future calculations
         this.weight = newWeight;
@@ -508,7 +512,7 @@ class DailyLog {
     }
 
     public String toString() {
-        return "Date: " + this.date.getValue();
+        return "Date: " + this.date.get();
     }
 }
 

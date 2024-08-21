@@ -661,8 +661,23 @@ public class AppView {
         TextField yearField = new TextField();
         yearField.setPromptText("Year");
 
-        TextField exerciseTypeField = new TextField();
-        exerciseTypeField.setPromptText("Enter exercise type (e.g., PUSH_UPS)");
+        ToggleGroup toggleGroup = new ToggleGroup();
+        RadioButton pushUp = new RadioButton("Push-UP");
+        pushUp.setToggleGroup(toggleGroup);
+        RadioButton starJump = new RadioButton("Star-Jump");
+        starJump.setToggleGroup(toggleGroup);
+        RadioButton tricepDip = new RadioButton("Tricep Dip");
+        tricepDip.setToggleGroup(toggleGroup);
+        RadioButton squats = new RadioButton("Squat");
+        squats.setToggleGroup(toggleGroup);
+        RadioButton burpee = new RadioButton("Burpee");
+        burpee.setToggleGroup(toggleGroup);
+        RadioButton chinUp = new RadioButton("Chin Up");
+        chinUp.setToggleGroup(toggleGroup);
+        RadioButton sitUp = new RadioButton("Sit UP");
+        sitUp.setToggleGroup(toggleGroup);
+        RadioButton pullUp = new RadioButton("Pull UP");
+        pullUp.setToggleGroup(toggleGroup);
 
         TextField repetitionsField = new TextField();
         repetitionsField.setPromptText("Enter number of repetitions");
@@ -676,9 +691,24 @@ public class AppView {
                 SimpleIntegerProperty month = new SimpleIntegerProperty(Integer.parseInt(monthField.getText()));
                 SimpleIntegerProperty year = new SimpleIntegerProperty(Integer.parseInt(yearField.getText()));
 
-                String exerciseTypeStr = exerciseTypeField.getText().toUpperCase();
-                ExerciseType exerciseType = ExerciseType.valueOf(exerciseTypeStr);
-
+                ExerciseType exerciseType = ExerciseType.PUSH_UPS;
+                if (pushUp.isSelected()) {
+                    exerciseType = ExerciseType.PUSH_UPS;
+                } else if (starJump.isSelected()) {
+                    exerciseType = ExerciseType.STAR_JUMPS;
+                } else if (tricepDip.isSelected()) {
+                    exerciseType = ExerciseType.TRICEP_DIPS;
+                } else if (burpee.isSelected()) {
+                    exerciseType = ExerciseType.BURPEES;
+                } else if (chinUp.isSelected()) {
+                    exerciseType = ExerciseType.CHIN_UPS;
+                } else if (sitUp.isSelected()) {
+                    exerciseType = ExerciseType.SIT_UPS;
+                } else if (squats.isSelected()) {
+                    exerciseType = ExerciseType.SQUATS;
+                } else if (pullUp.isSelected()) {
+                    exerciseType = ExerciseType.PULL_UPS;
+                }
                 // change to radio button
 
                 if (this.system.currentUser.caloriesCalculation == CalculateExcerciseCalories.PER_EXCERCISE) {
@@ -699,7 +729,7 @@ public class AppView {
                 new Label("Enter the date for these exercises (DD MM YYYY):"),
                 dayField, monthField, yearField,
                 new Label("Enter exercise type:"),
-                exerciseTypeField,
+                pushUp, starJump, tricepDip, burpee, chinUp, sitUp, squats, pullUp,
                 new Label("Enter number of repetitions:"),
                 repetitionsField, hoursField,
                 addButton);

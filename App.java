@@ -11,7 +11,7 @@ public class App extends Application {
         primaryStage.setTitle("Log In Page");
         Systems system = new Systems();
         system.addAccount(new SimpleStringProperty("1"), new SimpleStringProperty("1"), new SimpleStringProperty("1"),
-                new SimpleDoubleProperty(1), new SimpleDoubleProperty(1), Goal.GAIN_WEIGHT,
+                new SimpleDoubleProperty(80), new SimpleDoubleProperty(1.8), Goal.LOSE_WEIGHT,
                 CalculateExcerciseCalories.DURATION_OF_EXCERCISE);
         AdminUser admin = new AdminUser(system, new SimpleStringProperty("1"), new SimpleStringProperty("1"),
                 new SimpleStringProperty("1"));
