@@ -33,9 +33,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class AppView {
     private VBox view;
-    TextField signInUser;
+    TextField signInUserName;
     TextField signInPassword;
-    public Button buttronIn;
+    public Button buttonIn;
     private Button signUpButton;
     Label info;
     private Systems system;
@@ -68,7 +68,6 @@ public class AppView {
     }
 
     private void showViewFitnessHistoryWindow() {
-        System.out.println("Entering showViewFitnessHistoryWindow method");
 
         Stage stage = new Stage();
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -76,57 +75,21 @@ public class AppView {
         history = FXCollections
                 .observableArrayList(system.currentUser.getFitnessHistory().sortedHistory());
 
-        // try {
-        // };
+
         table = new TableView<>();
 
-        // Set up table columns
         TableColumn<DailyLog, String> dateColumn = new TableColumn<>("Date");
         dateColumn.setMinWidth(300);
         TableColumn<DailyLog, Double> improvementColumn = new TableColumn<>("Improvement %");
         improvementColumn.setMinWidth(300);
         TableColumn<DailyLog, String> exercisesColumn = new TableColumn<>("Exercises");
         exercisesColumn.setMinWidth(300);
-        // TableColumn<DailyLog, Void> actionsColumn = new TableColumn<>("Actions");
+
         dateColumn.setCellValueFactory(cellData -> cellData.getValue().getDate());
         improvementColumn.setCellValueFactory(cellData -> cellData.getValue().getImprovementPercentage().asObject());
         exercisesColumn.setCellValueFactory(
                 cellData -> cellData.getValue().getListExercise(system.currentUser.caloriesCalculation));
-        // improvementColumn.setCellFactory(column -> new
-        // TableCell<AppController.DailyLogEntry, Double>());
-        // exercisesColumn.setCellValueFactory(cellData ->
-        // cellData.getValue().getBMI().asObject());
 
-        // actionsColumn.setCellFactory(column -> {
-        // return new TableCell<AppController.DailyLogEntry, Void>() {
-        // private final Button editButton = new Button("Edit");
-        // private final Button deleteButton = new Button("Delete");
-        // {
-        // editButton.setOnAction(event -> {
-        // AppController.DailyLogEntry entry =
-        // getTableView().getItems().get(getIndex());
-        // showEditDialog(entry, table);
-        // });
-        // deleteButton.setOnAction(event -> {
-        // AppController.DailyLogEntry entry =
-        // getTableView().getItems().get(getIndex());
-        // controller.deleteDailyLog(entry);
-        // table.setItems(controller.getFitnessHistoryData()); // Refresh the table
-        // });
-        // }
-
-        // @Override
-        // protected void updateItem(Void item, boolean empty) {
-        // super.updateItem(item, empty);
-        // if (empty) {
-        // setGraphic(null);
-        // } else {
-        // HBox buttons = new HBox(5, editButton, deleteButton);
-        // setGraphic(buttons);
-        // }
-        // }
-        // };
-        // });
         Button closeButton = new Button("Close");
         closeButton.setOnAction(e -> {
             history = null;
@@ -136,18 +99,6 @@ public class AppView {
         table.setItems(history);
         table.getColumns().addAll(dateColumn, improvementColumn, exercisesColumn);
 
-        // System.out.println("About to call getFitnessHistoryData");
-        // // ObservableList<AppController.DailyLogEntry> data =
-        // controller.getFitnessHistoryData();
-        // System.out.println("Data size: " + data.size());
-
-        // // Print out the contents of the data
-        // for (AppController.DailyLogEntry entry : data) {
-        // System.out.println("Entry: ID=" + entry.getId() + ", Date=" + entry.getDate()
-        // +
-        // ", Improvement=" + entry.getImprovementPercentage() +
-        // ", Exercises=" + entry.getExercises());
-        // }
         this.deleteDaily = new Button("Delete");
         deleteDaily.setOnAction(e -> {
             DailyLog selecteDailyLog = this.table.getSelectionModel().getSelectedItem();
@@ -168,70 +119,13 @@ public class AppView {
 
         Scene scene = new Scene(layout, 900, 600);
         stage.setScene(scene);
-        System.out.println("About to show stage");
         stage.show();
-        System.out.println("Stage shown");
-        // } catch (Exception e) {
-        // System.err.println("Error in showViewFitnessHistoryWindow: " +
-        // e.getMessage());
-        // e.printStackTrace();
-        // showAlert("Error", "An error occurred while loading fitness history: " +
-        // e.getMessage(),
-        // Alert.AlertType.ERROR);
-        // }
     }
 
-    // private void showEditDialog(AppController.DailyLogEntry entry,
-    // TableView<AppController.DailyLogEntry> table) {
-    // Stage dialog = new Stage();
-    // dialog.initModality(Modality.APPLICATION_MODAL);
-    // dialog.setTitle("Edit Daily Log");
-
-    // GridPane grid = new GridPane();
-    // grid.setHgap(10);
-    // grid.setVgap(10);
-    // grid.setPadding(new Insets(20, 150, 10, 10));
-
-    // TextField dateField = new TextField(entry.getDate());
-    // TextField improvementField = new TextField(String.format("%.14f",
-    // entry.getImprovementPercentage()));
-    // TextArea exercisesArea = new TextArea(entry.getExercises());
-
-    // grid.add(new Label("Date:"), 0, 0);
-    // grid.add(dateField, 1, 0);
-    // grid.add(new Label("Improvement %:"), 0, 1);
-    // grid.add(improvementField, 1, 1);
-    // grid.add(new Label("Exercises:"), 0, 2);
-    // grid.add(exercisesArea, 1, 2);
-
-    // Button saveButton = new Button("Save");
-    // saveButton.setOnAction(e -> {
-    // try {
-    // double newImprovement = Double.parseDouble(improvementField.getText());
-    // controller.editDailyLog(entry, dateField.getText(), newImprovement,
-    // exercisesArea.getText());
-    // table.setItems(controller.getFitnessHistoryData()); // Refresh the table
-    // dialog.close();
-    // } catch (NumberFormatException ex) {
-    // // Show error message
-    // showAlert("Invalid Input", "Please enter a valid number for improvement
-    // percentage.");
-    // } catch (Exception ex) {
-    // // Show error message
-    // showAlert("Error", "An error occurred while saving: " + ex.getMessage());
-    // }
-    // });
-
-    // grid.add(saveButton, 1, 3);
-
-    // Scene dialogScene = new Scene(grid, 400, 300);
-    // dialog.setScene(dialogScene);
-    // dialog.showAndWait();
-    // }
     private void modifyForm(Stage primaryStage, DailyLog dailyLog) {
         Stage stage = new Stage();
         stage.initOwner(primaryStage);
-        // Make it modal
+
         stage.initModality(Modality.APPLICATION_MODAL);
         ToggleGroup toggleGroup = new ToggleGroup();
         RadioButton pushUp = new RadioButton("Push-UP");
@@ -251,7 +145,7 @@ public class AppView {
         RadioButton pullUp = new RadioButton("Sit UP");
         pullUp.setToggleGroup(toggleGroup);
         TextField numberToChange = new TextField();
-        Button submit = new Button("submit");
+        Button submit = new Button("Submit");
         submit.setOnAction(e -> {
             ExerciseType exerciseType = ExerciseType.PUSH_UPS;
             String number = numberToChange.getText();
@@ -296,8 +190,6 @@ public class AppView {
     public void inAccount(Stage primaryStage, Systems s) {
         Stage stage = new Stage();
         stage.initOwner(primaryStage);
-
-        // Make it modal
         stage.initModality(Modality.APPLICATION_MODAL);
         Button logButton = new Button("Log Out");
         logButton.setOnAction(event -> {
@@ -312,7 +204,6 @@ public class AppView {
         viewDailyLogButton.setOnAction(event -> showViewDailyLogWindow());
         Button viewFitnessHistoryButton = new Button("View Fitness History");
         viewFitnessHistoryButton.setOnAction(event -> {
-            System.out.println("View Fitness History button clicked");
             this.system.currentUser.viewHistory();
             showViewFitnessHistoryWindow();
         });
@@ -361,6 +252,7 @@ public class AppView {
         stage.initOwner(primaryStage);
         stage.initModality(Modality.APPLICATION_MODAL);
         TextField calories = new TextField();
+        calories.setPromptText("Calories");
         calories.setPromptText("Enter your calories");
         Label label = new Label("Consume calories or Burn calories");
         ToggleGroup toggleGroup = new ToggleGroup();
@@ -390,10 +282,14 @@ public class AppView {
 
         Label dateLabel = new Label("Enter Date");
         TextField dayField = new TextField();
+        dayField.setPromptText("Day");
         TextField monthField = new TextField();
+        monthField.setPromptText("Month");
         TextField yearField = new TextField();
+        yearField.setPromptText("Year");
         Label hoursLabel = new Label("Enter Hours of Sleep:");
         TextField hoursField = new TextField();
+        hoursField.setPromptText("Hours");
         configTextFieldForDoubles(hoursField);
 
         Button submitButton = new Button("Submit");
@@ -420,12 +316,11 @@ public class AppView {
     }
 
     private void logInAccount(Stage primaryStage) {
-        buttronIn.setOnAction(event -> {
+        buttonIn.setOnAction(event -> {
             try {
-                controller.logIn(signInUser.getText(), signInPassword.getText());
+                controller.logIn(signInUserName.getText(), signInPassword.getText());
                 info.setText("Log In SuccessFull");
                 correcProperty = new SimpleBooleanProperty(true);
-                // showMainMenu();
                 inAccount(primaryStage, system);
             } catch (Error e) {
                 info.setText("Log In unsuccessful");
@@ -453,7 +348,6 @@ public class AppView {
         Stage stage = new Stage();
         stage.initOwner(primaryStage);
 
-        // Make it modal
         stage.initModality(Modality.APPLICATION_MODAL);
         Button removeButton = new Button("Remove Account");
         removeButton.setOnAction(e -> {
@@ -471,14 +365,14 @@ public class AppView {
     private void removeAccoutWindow(Stage primaryStage) {
         Stage stage = new Stage();
         stage.initOwner(primaryStage);
-
-        // Make it modal
         stage.initModality(Modality.APPLICATION_MODAL);
         Label idLabel = new Label("Please enter the id you want to remove");
         TextField idField = new TextField();
+        idField.setPromptText("ID");
         configTextFieldForDoubles(idField);
         Label keyLabel = new Label("Please enter the your key");
         TextField keyField = new TextField();
+        keyField.setPromptText("Key");
         Button Submit = new Button();
         Submit.setOnAction(e -> {
             if (controller.verifyKey(keyField.getText())) {
@@ -504,11 +398,16 @@ public class AppView {
         stage.initOwner(primaryStage);
         stage.initModality(Modality.APPLICATION_MODAL);
         TextField username = new TextField();
+        username.setPromptText("Username");
         TextField password = new TextField();
+        password.setPromptText("Password");
         TextField email = new TextField();
+        email.setPromptText("Email");
         TextField height = new TextField();
+        height.setPromptText("Height (meters)");
         configTextFieldForDoubles(height);
         TextField weight = new TextField();
+        weight.setPromptText("Weight (KG)");
         configTextFieldForDoubles(weight);
         Button Submion = new Button("Submit");
         Label inform = new Label();
@@ -557,15 +456,17 @@ public class AppView {
     }
 
     public void createLayout() {
-        signInUser = new TextField();
+        signInUserName = new TextField();
+        signInUserName.setPromptText("Username");
         signInPassword = new TextField();
-        buttronIn = new Button("Sign In");
+        signInPassword.setPromptText("Password");
+        buttonIn = new Button("Sign In");
         info = new Label();
         signUpButton = new Button("Sign Up");
         adminButton = new Button("Go to admin mode");
-        HBox signInRow = new HBox(5, signInUser, signInPassword);
+        HBox signInRow = new HBox(5, signInUserName, signInPassword);
         signInRow.setAlignment(Pos.CENTER);
-        HBox signInBut = new HBox(5, buttronIn);
+        HBox signInBut = new HBox(5, buttonIn);
         signInBut.setAlignment(Pos.CENTER);
         HBox information = new HBox(5, info);
         information.setAlignment(Pos.CENTER);
@@ -575,29 +476,6 @@ public class AppView {
 
     }
 
-    // private void showMainMenu() {
-    // view.getChildren().clear();
-    // Label welcomeLabel = new Label("Welcome, " +
-    // system.currentUser.getName().get());
-    // Button addExerciseButton = new Button("Add Exercise");
-    // addExerciseButton.setOnAction(event -> showAddExerciseWindow());
-    // Button viewDailyLogButton = new Button("View Daily Log");
-    // viewDailyLogButton.setOnAction(event -> showViewDailyLogWindow());
-    // Button viewFitnessHistoryButton = new Button("View Fitness History");
-    // viewFitnessHistoryButton.setOnAction(event -> {
-    // System.out.println("View Fitness History button clicked");
-    // showViewFitnessHistoryWindow();
-    // });
-    // Button logOutButton = new Button("Log Out");
-    // logOutButton.setOnAction(event -> {
-    // system.logOut(system.currentUser.getName());
-    // view.getChildren().clear();
-    // createLoginLayout();
-    // });
-    // view.getChildren().addAll(welcomeLabel, addExerciseButton,
-    // viewDailyLogButton, viewFitnessHistoryButton,
-    // logOutButton);
-    // }
 
     private void showViewDailyLogWindow() {
         Stage stage = new Stage();
@@ -709,7 +587,7 @@ public class AppView {
                 } else if (pullUp.isSelected()) {
                     exerciseType = ExerciseType.PULL_UPS;
                 }
-                // change to radio button
+
 
                 if (this.system.currentUser.caloriesCalculation == CalculateExcerciseCalories.PER_EXCERCISE) {
                     SimpleIntegerProperty repetitions = new SimpleIntegerProperty(
