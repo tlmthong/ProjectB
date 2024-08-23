@@ -22,26 +22,6 @@ public class AppController {
         return FXCollections.observableArrayList(ExerciseType.values());
     }
 
-    public void reformatHistory() {
-        ArrayList<DailyLog> oldArray = this.sys.currentUser.getFitnessHistory().sortedHistory();
-        FitnessHistory formattedFitnessHistory = new FitnessHistory();
-        this.sys.currentUser.setBmi(this.sys.currentUser.initialBMI);
-        this.sys.currentUser.weight = this.sys.currentUser.initialWeight;
-        this.sys.currentUser.history = formattedFitnessHistory;
-        for (DailyLog dailyLog : oldArray) {
-            DailyLog workingDaily = new DailyLog(dailyLog.getDays(), dailyLog.getMonths(), dailyLog.getYear());
-            sys.currentUser.history.addOrUpdateDailyLog(workingDaily);
-            for (Feature feature : dailyLog.getFeatures()) {
-                if (feature instanceof PhysicalMonitor) {
-                    workingDaily.addFeature(((PhysicalMonitor) feature).getExercises());
-                    sys.currentUser.calculateCalories(workingDaily);
-                    sys.currentUser.calculateImprovement(workingDaily, sys.currentUser.getGoal());
-                } else {
-                    workingDaily.addFeature(feature);
-                }
-            }
-        }
-    }
 
     public void addupdateDailyLog(DailyLog dailyLog, ExerciseType exercisetype, String rep) {
         DailyLog daily = this.sys.currentUser.history.getDailyLog(dailyLog);
@@ -54,12 +34,10 @@ public class AppController {
             exercise = new Exercise(new SimpleDoubleProperty(0), new SimpleIntegerProperty(repetition), exercisetype);
         }
         daily.setFeature(exercise);
-        reformatHistory();
     }
 
     public void deleteDailyLog(DailyLog daily) {
         this.sys.currentUser.history.getHistory().remove(daily);
-        reformatHistory();
     }
 
     public void addExercise(SimpleIntegerProperty day, SimpleIntegerProperty month, SimpleIntegerProperty year,
@@ -69,7 +47,7 @@ public class AppController {
             dailyLog = new DailyLog(day, month, year);
         }
 
-        SimpleDoubleProperty hours = new SimpleDoubleProperty(0); // Set to 0 as we're using repetitions
+        SimpleDoubleProperty hours = new SimpleDoubleProperty(0);
         SimpleIntegerProperty count = repetitions;
         Exercise exercise = new Exercise(hours, count, exerciseType);
         dailyLog.addFeature(exercise);
@@ -98,7 +76,7 @@ public class AppController {
     }
 
     public void addExercise(DailyLog dailyLog, ExerciseType exerciseType, SimpleIntegerProperty repetitions) {
-        SimpleDoubleProperty hours = new SimpleDoubleProperty(0); // Set to 0 as we're using repetitions
+        SimpleDoubleProperty hours = new SimpleDoubleProperty(0);
         SimpleIntegerProperty count = repetitions;
         Exercise exercise = new Exercise(hours, count, exerciseType);
         dailyLog.addFeature(exercise);
@@ -147,12 +125,6 @@ public class AppController {
         }
     }
 
-    // public void addSleep(D)
-    // public SimpleStringProperty getName() {
-    // String name = sys.currentUser.getName().getValue();
-    // SimpleStringProperty returnMessage = new SimpleStringProperty(name);
-    // return returnMessage;
-    // }
     public void addSleep(String day, String month, String year, String hours) {
         System.out.println(day + month + year + hours);
         DailyLog daily = sys.currentUser.getFitnessHistory().getDailyLog(
@@ -202,7 +174,7 @@ public class AppController {
         if ("-".equals(s)) {
             return 0;
         }
-        return Integer.parseInt(s); // Convert string into integer
+        return Integer.parseInt(s);
     }
 
     public double convertStringToDouble(String s) {
@@ -212,7 +184,7 @@ public class AppController {
         if ("-".equals(s)) {
             return 0;
         }
-        return Double.parseDouble(s); // Convert string into double
+        return Double.parseDouble(s);
     }
 
 }
