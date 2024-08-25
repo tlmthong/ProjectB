@@ -79,17 +79,27 @@ public class AppController {
 
     public void addExercise(int day, int month, int year,
             ExerciseType exerciseType, SimpleIntegerProperty repetitions) {
+        // controller: retrieve or create DailyLog
         DailyLog dailyLog = system.getCurrentUser().getFitnessHistory().getDailyLog(day, month, year);
         if (dailyLog == null) {
             dailyLog = new DailyLog(day, month, year);
         }
 
+        // controller: create Exercise object
         SimpleDoubleProperty hours = new SimpleDoubleProperty(0); // Set to 0 as we're using repetitions
         SimpleIntegerProperty count = repetitions;
         Exercise exercise = new Exercise(hours, count, exerciseType);
+
+        // model: add exercise to DailyLog
         dailyLog.addFeature(exercise);
+
+        // model: update FitnessHistory
         system.getCurrentUser().getFitnessHistory().addOrUpdateDailyLog(dailyLog);
+
+        //  model: calculate calories
         system.getCurrentUser().calculateCalories(dailyLog);
+
+        // model: calculate improvement
         system.getCurrentUser().calculateImprovement(dailyLog, system.getCurrentUser().getGoal());
     }
 
