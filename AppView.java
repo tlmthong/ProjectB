@@ -653,6 +653,8 @@ public class AppView {
     }
 
     private void showAddExerciseWindow(Stage primaryStage) {
+
+        // view: create and display the UI elements
         Stage stage = new Stage();
         stage.initOwner(primaryStage);
         stage.initModality(Modality.APPLICATION_MODAL);
@@ -660,6 +662,7 @@ public class AppView {
 
         VBox layout = new VBox(10);
 
+        // view: create input fields and buttons
         TextField dayField = new TextField();
         dayField.setPromptText("Day");
         TextField monthField = new TextField();
@@ -691,12 +694,16 @@ public class AppView {
         hoursField.setPromptText("Enter number of hours");
 
         Button addButton = new Button("Add Exercise");
+
+        // view: set up event handling
         addButton.setOnAction(e -> {
             try {
+                // controller: convert input to appropriate data types
                 int day = controller.convertStringToInt(dayField.getText());
                 int month = controller.convertStringToInt(monthField.getText());
                 int year = controller.convertStringToInt(yearField.getText());
 
+                // controller: determine selected exercise type
                 ExerciseType exerciseType = ExerciseType.PUSH_UPS;
                 if (pushUp.isSelected()) {
                     exerciseType = ExerciseType.PUSH_UPS;
@@ -717,20 +724,25 @@ public class AppView {
                 }
                 // change to radio button
 
+                // controller: add exercise based on calculation type
                 if (this.system.getCurrentUser().getCalculate() == CalculateExcerciseCalories.PER_EXCERCISE) {
                     SimpleIntegerProperty repetitions = new SimpleIntegerProperty(
                             controller.convertStringToInt(repetitionsField.getText()));
+                    // controller: call method to add exercise
                     controller.addExercise(day, month, year, exerciseType, repetitions);
                 } else {
                     SimpleDoubleProperty hour = new SimpleDoubleProperty(Double.parseDouble(hoursField.getText()));
+                    // controller: call method to add exercise
                     controller.addExercise(day, month, year, exerciseType, hour);
                 }
+                // view: close the window after adding exercise
                 stage.close();
             } catch (IllegalArgumentException ex) {
                 System.out.println("Error");
             }
         });
 
+        // view: add UI elements to layout
         layout.getChildren().addAll(
                 new Label("Enter the date for these exercises (DD MM YYYY):"),
                 dayField, monthField, yearField,
@@ -740,6 +752,7 @@ public class AppView {
                 repetitionsField, hoursField,
                 addButton);
 
+        // view: set up and show the scene
         Scene scene = new Scene(layout);
         stage.setScene(scene);
         stage.show();
