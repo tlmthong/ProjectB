@@ -12,12 +12,13 @@ enum ExerciseType { // enum to represent various exercise types
     PULL_UPS("Pull-ups", new SimpleIntegerProperty(8), new SimpleIntegerProperty(10), new SimpleIntegerProperty(7)), // pull-ups
     CHIN_UPS("Chin-ups", new SimpleIntegerProperty(8), new SimpleIntegerProperty(10), new SimpleIntegerProperty(10)); // chin-ups
 
-    String name; // string value for each exercise to represent its name
-    SimpleIntegerProperty METvalue; // this is a value that represents the energy cost of physical activites
-    SimpleIntegerProperty amountOfExercisePerMinute; // the amount of repetitions per minute, this is needed to calulate
-                                                     // the calories
+    final String name; // string value for each exercise to represent its name
+    final SimpleIntegerProperty METvalue; // this is a value that represents the energy cost of physical activites
+    final SimpleIntegerProperty amountOfExercisePerMinute; // the amount of repetitions per minute, this is needed to
+                                                           // calulate
+    // the calories
     // burnt for repetitions
-    SimpleIntegerProperty identifierID; // a way to identify the exercise
+    final SimpleIntegerProperty identifierID; // a way to identify the exercise
 
     ExerciseType(String name, SimpleIntegerProperty METvalue, SimpleIntegerProperty amountOfExercisePerMinute,
             SimpleIntegerProperty identifierID) { // to initialise the
@@ -44,7 +45,7 @@ interface SleepTracker {
 }
 
 class Feature {
-    protected SimpleIntegerProperty id; // user attribute to assign each feature for specific user
+    private final SimpleIntegerProperty id; // user attribute to assign each feature for specific user
     protected static SimpleIntegerProperty nextID = new SimpleIntegerProperty(0);
 
     Feature() {
@@ -58,8 +59,8 @@ class Feature {
 }
 
 class Exercise {
-    private SimpleDoubleProperty hours; // hours of each exercise done
-    private SimpleIntegerProperty count; // count of each exericse done
+    private final SimpleDoubleProperty hours; // hours of each exercise done
+    private final SimpleIntegerProperty count; // count of each exericse done
     private ExerciseType exerciseType; // the exercise type
 
     // intialise attributes
@@ -69,11 +70,23 @@ class Exercise {
         this.exerciseType = exerciseType;
     }
 
+    void setHour(double hour) {
+        this.hours.set(hour);
+    }
+
+    void setRep(int rep) {
+        this.count.set(rep);
+    }
+
+    void setExercise(ExerciseType exerciseType) {
+        this.exerciseType = exerciseType;
+    }
+
     void addHours(double hours) {
         this.hours.add(hours);
     }
 
-    void addCount(SimpleIntegerProperty count) {
+    void addCount(int count) {
         this.count.add(count);
     }
 
@@ -99,7 +112,7 @@ class Exercise {
 
 class PhysicalMonitor extends Feature implements ExerciseTracker {
     private Exercise exercises; // holds all exercises done
-    private SimpleDoubleProperty caloriesBurnt; // total calories burnt
+    private final SimpleDoubleProperty caloriesBurnt; // total calories burnt
 
     // initialises attributes
     PhysicalMonitor() {
@@ -122,8 +135,9 @@ class PhysicalMonitor extends Feature implements ExerciseTracker {
     }
 
     // tracks calories burnt from exercises by each repetition
-    public void setCaloriesBurnt(SimpleDoubleProperty cal) {
-        this.caloriesBurnt = cal;
+    public void setCaloriesBurnt(double cal) {
+        this.caloriesBurnt.set(cal);
+        ;
     }
 
     public String toString() {
@@ -133,7 +147,7 @@ class PhysicalMonitor extends Feature implements ExerciseTracker {
 }
 
 class StressMonitor extends Feature implements SleepTracker {
-    private SimpleDoubleProperty hoursOfSleep;
+    private final SimpleDoubleProperty hoursOfSleep;
 
     StressMonitor(SimpleDoubleProperty hoursOfSleep) {
         super();
@@ -149,6 +163,10 @@ class StressMonitor extends Feature implements SleepTracker {
 
     public SimpleDoubleProperty getSleep() {
         return this.hoursOfSleep;
+    }
+
+    public void setHour(double hour) {
+        this.hoursOfSleep.set(hour);
     }
 
     public String toString() {

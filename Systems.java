@@ -1,22 +1,21 @@
-import java.io.EOFException;
+
 import java.util.*;
 import javafx.beans.property.*;
 
-interface verifyAccount {
-    boolean logIn(SimpleStringProperty username, SimpleStringProperty password);
+interface VerifyAccount {
+    boolean logIn(String username, String password);
 
-    void logOut(SimpleStringProperty username);
+    void logOut(String username);
 
-    void addAccount(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email,
-            SimpleDoubleProperty weight, SimpleDoubleProperty height, Goal goal,
+    void addAccount(String username, String password, String email, double weight, double height, Goal goal,
             CalculateExcerciseCalories caloriesCalculation);
 }
 
-class Systems implements verifyAccount {
+class Systems implements VerifyAccount {
     private int availableId;
     private Map<Integer, FitnessUser> accounts; //
     private List<FitnessUser> signedInAccount; // Optimize better than Arraylist
-    public FitnessUser currentUser;
+    private FitnessUser currentUser;
 
     Systems() {
         this.accounts = new HashMap<>();
@@ -24,8 +23,11 @@ class Systems implements verifyAccount {
         this.availableId = 0;
     }
 
-    public void addAccount(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email,
-            SimpleDoubleProperty weight, SimpleDoubleProperty height, Goal goal,
+    public FitnessUser getCurrentUser() {
+        return this.currentUser;
+    }
+
+    public void addAccount(String username, String password, String email, double weight, double height, Goal goal,
             CalculateExcerciseCalories caloriesCalculation) {
         Random ran = new Random();
         int increment = ran.nextInt(10) + 1;
@@ -37,9 +39,9 @@ class Systems implements verifyAccount {
                 + ". Email: " + email);
     }
 
-    public boolean logIn(SimpleStringProperty username, SimpleStringProperty password) {
+    public boolean logIn(String username, String password) {
         for (Map.Entry<Integer, FitnessUser> entry : this.accounts.entrySet()) {
-            if (entry.getValue().getName().getValue().equals(username.getValue())) {
+            if (entry.getValue().getName().getValue().equals(username)) {
                 boolean sucess = entry.getValue().authorized(password).getValue();
                 if (sucess) {
                     if (this.signedInAccount.contains(entry.getValue())) {
@@ -59,9 +61,9 @@ class Systems implements verifyAccount {
         return false;
     }
 
-    public boolean logIn(SimpleIntegerProperty id, SimpleStringProperty password) {
+    public boolean logIn(int id, String password) {
         try { // Try to see if the id existed
-            FitnessUser logInUser = this.accounts.get(id.getValue());
+            FitnessUser logInUser = this.accounts.get(id);
             SimpleBooleanProperty sucess = logInUser.authorized(password);
             if (sucess.getValue()) {
                 if (this.signedInAccount.contains(logInUser)) {
@@ -82,9 +84,9 @@ class Systems implements verifyAccount {
 
     }
 
-    public void logOut(SimpleStringProperty username) {
+    public void logOut(String username) {
         for (FitnessUser user : this.signedInAccount) {
-            if (user.getName().equals(username)) {
+            if (user.getName().getValue().equals(username)) {
                 this.signedInAccount.remove(user);
                 System.out.println("Log Out successfully");
                 this.currentUser = null;
@@ -106,21 +108,15 @@ class Systems implements verifyAccount {
         return this.currentUser.username;
     }
 
-    public void changeUserName(SimpleStringProperty Name) {
-        if (this.currentUser != null) {
-            this.currentUser.username = Name;
-        }
-    }
-
-    public void changePassword(SimpleStringProperty Password) {
+    public void changePassword(String Password) {
         if (currentUser != null) {
             this.currentUser.changePassword(Password);
         }
     }
 
-    public void removeAccount(SimpleIntegerProperty id) {
+    public void removeAccount(int id) {
         try {
-            this.accounts.remove(id.getValue());
+            this.accounts.remove(id);
             throw new Error("Removed");
         } catch (Exception e) {
         }

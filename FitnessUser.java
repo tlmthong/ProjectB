@@ -2,30 +2,30 @@ import java.util.*;
 import javafx.beans.property.*;
 
 public class FitnessUser extends User implements UserAuthentication {
-    SimpleDoubleProperty weight;
-    SimpleDoubleProperty height;
-    Goal goal;
-    private SimpleStringProperty password;
-    CalculateExcerciseCalories caloriesCalculation;
+    private final SimpleDoubleProperty weight = new SimpleDoubleProperty();
+    private final SimpleDoubleProperty height = new SimpleDoubleProperty();
+    private Goal goal;
+    private final SimpleStringProperty password = new SimpleStringProperty();
+    private CalculateExcerciseCalories caloriesCalculation;
     private HashMap<Character, Character> encryptionMap = new HashMap<>();
-    FitnessHistory history = new FitnessHistory();
-    private SimpleDoubleProperty calorieBalance = new SimpleDoubleProperty(0);
-    private SimpleDoubleProperty bmi;
-    public SimpleDoubleProperty initialBMI;
-    public SimpleDoubleProperty initialWeight;
+    private FitnessHistory history = new FitnessHistory();
+    private final SimpleDoubleProperty calorieBalance = new SimpleDoubleProperty(0);
+    private final SimpleDoubleProperty bmi = new SimpleDoubleProperty();
+    public final SimpleDoubleProperty initialBMI = new SimpleDoubleProperty();
+    public final SimpleDoubleProperty initialWeight = new SimpleDoubleProperty();
 
-    FitnessUser(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email,
-            SimpleDoubleProperty weight, SimpleDoubleProperty height, Goal goal,
+    FitnessUser(String username, String password, String email, double weight, double height, Goal goal,
             CalculateExcerciseCalories caloriesCalculation) {
         super(username, password, email);
-        this.height = height;
-        this.weight = weight;
+        this.height.set(height);
+        this.weight.set(weight);
         this.caloriesCalculation = caloriesCalculation;
         this.goal = goal;
-        this.password = password;
-        this.bmi = new SimpleDoubleProperty(weight.doubleValue() / ((height.doubleValue() * height.doubleValue())));
-        this.initialBMI = this.bmi;
-        this.initialWeight = this.weight;
+        this.password.set(password);
+        this.bmi.set(this.weight.doubleValue() / ((this.height.doubleValue() * this.height.doubleValue())));
+        this.initialBMI.set(this.bmi.doubleValue());
+        this.initialWeight.set(this.weight.doubleValue());
+        ;
         this.encryptionMap.put('a', 'm');
         this.encryptionMap.put('b', 'n');
         this.encryptionMap.put('c', 'o');
@@ -79,6 +79,30 @@ public class FitnessUser extends User implements UserAuthentication {
 
     }
 
+    public CalculateExcerciseCalories getCalculate() {
+        return this.caloriesCalculation;
+    }
+
+    public void setCalories(CalculateExcerciseCalories calculateExcerciseCalories) {
+        this.caloriesCalculation = calculateExcerciseCalories;
+    }
+
+    public void setHistory(FitnessHistory history) {
+        this.history = history;
+    }
+
+    public void setInitalBMI() {
+        this.bmi.set(this.initialBMI.doubleValue());
+    }
+
+    public void setInitalWeight() {
+        this.weight.set(this.initialWeight.doubleValue());
+    }
+
+    public SimpleDoubleProperty getInitialWeight() {
+        return this.initialWeight;
+    }
+
     public SimpleDoubleProperty getHeight() {
         return this.height;
     }
@@ -91,40 +115,39 @@ public class FitnessUser extends User implements UserAuthentication {
         return this.goal;
     }
 
-    public void setBmi(SimpleDoubleProperty bmi) {
-        this.bmi = bmi;
+    public void setBmi(double bmi) {
+        this.bmi.set(bmi);
+        ;
     }
 
-    public void updateBMI(SimpleDoubleProperty weightProperty, DailyLog d) {
-        this.bmi = new SimpleDoubleProperty(
-                weightProperty.doubleValue() / ((height.doubleValue() * height.doubleValue())));
+    public void updateBMI(double weight, DailyLog daily) {
+        this.bmi.set(weight / ((height.doubleValue() * height.doubleValue())));
 
-        d.setDailyBMI(this.bmi);
+        daily.setDailyBMI(this.bmi.doubleValue());
     }
 
-    public SimpleStringProperty encrypt(SimpleStringProperty password) {
+    public String encrypt(String password) {
         String encryptString = "";
-        for (int i = 0; i < password.getValue().length(); i++) {
-            char currChar = password.getValue().charAt(i);
+        for (int i = 0; i < password.length(); i++) {
+            char currChar = password.charAt(i);
             encryptString += this.encryptionMap.get(currChar);
         }
-        SimpleStringProperty encryptPassword = new SimpleStringProperty(encryptString);
-        return encryptPassword;
+        return encryptString;
     }
 
-    private SimpleBooleanProperty decrypt(SimpleStringProperty password) {
+    private SimpleBooleanProperty decrypt(String password) {
         SimpleBooleanProperty matchPass = new SimpleBooleanProperty(
-                encrypt(password).getValue().equals(this.password.getValue()));
+                encrypt(password).equals(this.password.getValue()));
         return matchPass;
     }
 
     @Override
     public void initializeAccount() {
-        this.password = encrypt(this.password);
+        this.password.set(encrypt(this.password.getValue()));
     }
 
     @Override
-    public SimpleBooleanProperty authorized(SimpleStringProperty password) {
+    public SimpleBooleanProperty authorized(String password) {
         return decrypt(password);
     }
 
@@ -144,134 +167,87 @@ public class FitnessUser extends User implements UserAuthentication {
         this.history.viewFitnessHistory(this.caloriesCalculation);
     }
 
-    public void burnCalories(SimpleDoubleProperty calories) {
-        this.calorieBalance.subtract(calories.doubleValue());
+    public void burnCalories(double calories) {
+        this.calorieBalance.subtract(calories);
     }
 
     public ArrayList<PhysicalMonitor> getPhysicalList(DailyLog daily) {
-        ArrayList<PhysicalMonitor> m = new ArrayList<>();
+        ArrayList<PhysicalMonitor> monitor = new ArrayList<>();
         for (Feature f : daily.getFeatures()) {
             if (f instanceof PhysicalMonitor) {
-                m.add((PhysicalMonitor) f);
+                monitor.add((PhysicalMonitor) f);
             }
         }
-        return m;
+        return monitor;
     }
 
     public void calculateCalories(DailyLog d) {
         ArrayList<Double> calBurn = new ArrayList<>();
         if (d.getTotalExcercises() != null) {
-            for (Exercise e : d.getTotalExcercises()) {
+            for (Exercise exercise : d.getTotalExcercises()) {
                 if (getCaloriesCalculation() == CalculateExcerciseCalories.PER_EXCERCISE) {
-                    calBurn.add((e.getExerciseType().METvalue.getValue() * this.getWeight().getValue())
-                            / (60 * e.getExerciseType().amountOfExercisePerMinute.getValue())
-                            * e.getCount().getValue());
+                    calBurn.add((exercise.getExerciseType().METvalue.getValue() * this.getWeight().getValue())
+                            / (60 * exercise.getExerciseType().amountOfExercisePerMinute.getValue())
+                            * exercise.getCount().getValue());
                 } else {
-                    calBurn.add(e.getExerciseType().METvalue.getValue() * this.getWeight().doubleValue()
-                            * e.getHours().doubleValue());
+                    calBurn.add(exercise.getExerciseType().METvalue.getValue() * this.getWeight().doubleValue()
+                            * exercise.getHours().doubleValue());
                 }
             }
         }
         System.out.println("cal" + calBurn);
-        for (PhysicalMonitor f : getPhysicalList(d)) {
-            ((PhysicalMonitor) f)
-                    .setCaloriesBurnt(new SimpleDoubleProperty(calBurn.get(getPhysicalList(d).indexOf(f))));
+        for (PhysicalMonitor physicalMonitor : getPhysicalList(d)) {
+            ((PhysicalMonitor) physicalMonitor)
+                    .setCaloriesBurnt(calBurn.get(getPhysicalList(d).indexOf(physicalMonitor)));
         }
     }
 
-    // void calculateImprovement(DailyLog d, Goal g) {
-    // adjustWeight(d);
-    // d.setDailyBMI(this.bmi);
-    // int position = this.history.getHistory().indexOf(d);
-    // int previousPos = position - 1;
-    // while (this.history.getHistory().get(previousPos).getBMI() == null &&
-    // previousPos >= 0) {
-    // previousPos--;
-    // }
-    // if (position > 0 && previousPos >= 0) {
-    // SimpleDoubleProperty currentBMI =
-    // this.history.getHistory().get(position).getBMI();
-    // SimpleDoubleProperty previousBMI =
-    // this.history.getHistory().get(previousPos).getBMI();
-    // double improve = (currentBMI.doubleValue() - previousBMI.doubleValue()) /
-    // 100;
-    // SimpleDoubleProperty improvement = new SimpleDoubleProperty(improve);
-    // SimpleDoubleProperty improvementGain = new SimpleDoubleProperty(-improve);
-    // SimpleDoubleProperty improvementMaintain = new
-    // SimpleDoubleProperty(Math.abs(improve) * -1);
-    // if (g.equals(Goal.LOSE_WEIGHT)) {
-    // d.setImprovementPercentage(improvementGain);// negative improvement is good
-    // for weight loss
-    // } else if (g.equals(Goal.GAIN_WEIGHT)) {
-    // d.setImprovementPercentage(improvement); // positive improvement is good for
-    // weight gain
-    // } else if (g.equals(Goal.MAINTAIN_WEIGHT)) {
-    // d.setImprovementPercentage(improvementMaintain); // any change is considered
-    // negative for
-    // // maintaining weight
-    // }
-    // } else {
-    // d.setImprovementPercentage(new SimpleDoubleProperty(0)); // No previous log
-    // to compare with
-    // }
-    // }
-    void calculateImprovement(DailyLog d, Goal g) {
-        adjustWeight(d);
-        d.setDailyBMI(this.bmi);
-        int position = this.history.getHistory().indexOf(d);
+    void calculateImprovement(DailyLog daily, Goal goal) {
+        adjustWeight(daily);
+        daily.setDailyBMI(this.bmi.doubleValue());
+        int position = this.history.getHistory().indexOf(daily);
         int previousPos = position - 1;
-        // while (this.history.getHistory().get(previousPos).getBMI() == null &&
-        // previousPos >= 0) {
-        // previousPos--;
-        // }
         if (position > 0) {
             SimpleDoubleProperty currentBMI = this.history.getHistory().get(position).getBMI();
             SimpleDoubleProperty previousBMI = this.history.getHistory().get(previousPos).getBMI();
             double improve = ((currentBMI.doubleValue() - previousBMI.doubleValue()) / previousBMI.doubleValue()) * 100;
-            System.out.println("improve" + improve);
-            SimpleDoubleProperty improvement = new SimpleDoubleProperty(improve);
-            SimpleDoubleProperty improvementGain = new SimpleDoubleProperty(improve);
-            SimpleDoubleProperty improvementMaintain = new SimpleDoubleProperty(
-                    Math.round((Math.abs(improve)) * 1000) / 1000);
-            if (g.equals(Goal.LOSE_WEIGHT)) {
-                d.setImprovementPercentage(improvementGain);// negative improvement is good for weight loss
-            } else if (g.equals(Goal.GAIN_WEIGHT)) {
-                d.setImprovementPercentage(improvement); // positive improvement is good for weight gain
-            } else if (g.equals(Goal.MAINTAIN_WEIGHT)) {
-                d.setImprovementPercentage(improvementMaintain); // any change is considered negative for
-                                                                 // maintaining weight
+            if (goal.equals(Goal.LOSE_WEIGHT)) {
+                daily.setImprovementPercentage(improve);// negative improvement is good for weight loss
+            } else if (goal.equals(Goal.GAIN_WEIGHT)) {
+                daily.setImprovementPercentage(-improve); // positive improvement is good for weight gain
+            } else if (goal.equals(Goal.MAINTAIN_WEIGHT)) {
+                daily.setImprovementPercentage(Math.abs(improve)); // any change is considered negative for
+                // maintaining weight
             }
         } else {
-            d.setImprovementPercentage(new SimpleDoubleProperty(0)); // No previous log to compare with
+            daily.setImprovementPercentage(0); // No previous log to compare with
             System.out.println("no");
 
         }
-        System.out.println(d.getBMI().getValue());
+        System.out.println(daily.getBMI().getValue());
     }
 
-    public void setCalories(DailyLog d) {
+    public void setCalories(DailyLog dailyLog) {
         double cal = 0;
-        for (PhysicalMonitor pm : getPhysicalList(d)) {
-            cal += (d.caloriesComsume.getValue() - pm.getCaloriesBurnt().getValue() - d.getGeneralCal().getValue());
+        for (PhysicalMonitor pm : getPhysicalList(dailyLog)) {
+            cal += (dailyLog.caloriesComsume.getValue() - pm.getCaloriesBurnt().getValue()
+                    - dailyLog.getGeneralCal().getValue());
         }
-        this.calorieBalance = new SimpleDoubleProperty(cal);
+        this.calorieBalance.set(cal);
     }
 
     public void adjustWeight(DailyLog daily) {
         setCalories(daily);
-        System.out.println(calorieBalance);
         double weightChangeKg = (calorieBalance.getValue() * 45) / 350000;
-        SimpleDoubleProperty newWeight = new SimpleDoubleProperty(this.weight.getValue() + weightChangeKg);
-        // this.calorieBalance %= 3500; // Keep the remainder for future calculations
-        this.weight = newWeight;
-
-        // Update BMI in the most recent DailyLog
-        System.out.println(this.weight.doubleValue() + "calbal");
-        this.updateBMI(this.weight, daily);
+        double newWeight = this.weight.getValue() + weightChangeKg;
+        this.weight.set(newWeight);
+        ;
+        this.updateBMI(this.weight.doubleValue(), daily);
     }
 
-    public void changePassword(SimpleStringProperty password) {
-        this.password = password;
+    public void changePassword(String password) {
+        this.password.set(password);
+        ;
     }
 
     @Override
@@ -283,18 +259,19 @@ public class FitnessUser extends User implements UserAuthentication {
 interface UserAuthentication {
     void initializeAccount();
 
-    SimpleBooleanProperty authorized(SimpleStringProperty password);
+    SimpleBooleanProperty authorized(String password);
 }
 
 abstract class User {
-    SimpleStringProperty username;
-    SimpleStringProperty password;
-    SimpleStringProperty email;
+    final SimpleStringProperty username = new SimpleStringProperty();
+    final SimpleStringProperty password = new SimpleStringProperty();
+    final SimpleStringProperty email = new SimpleStringProperty();
 
-    User(SimpleStringProperty username, SimpleStringProperty password, SimpleStringProperty email) {
-        this.username = username;
-        this.password = password;
-        this.email = email;
+    User(String username, String password, String email) {
+        this.username.set(username);
+        ;
+        this.password.set(password);
+        this.email.set(email);
     }
 
     public String toString() {
@@ -314,27 +291,26 @@ enum CalculateExcerciseCalories {
 }
 
 class DailyLog {
-    private SimpleIntegerProperty days;
-    private SimpleIntegerProperty months;
-    private SimpleIntegerProperty year;
+    private final SimpleIntegerProperty days = new SimpleIntegerProperty();
+    private final SimpleIntegerProperty months = new SimpleIntegerProperty();
+    private final SimpleIntegerProperty year = new SimpleIntegerProperty();
     static final Comparator<DailyLog> comparatorForDates = Comparator
             .comparing(DailyLog::getIntYear)
             .thenComparing(DailyLog::getIntMonth)
             .thenComparing(DailyLog::getIntDay);
-    public SimpleDoubleProperty caloriesComsume;
-    private SimpleStringProperty date = new SimpleStringProperty();
+    public final SimpleDoubleProperty caloriesComsume;
+    private final SimpleStringProperty date = new SimpleStringProperty();
     private List<Feature> features;
-    private SimpleDoubleProperty improvementPercentage;
-    private SimpleDoubleProperty dailyBMI = new SimpleDoubleProperty(0);
-    private SimpleDoubleProperty generalCalBurn;
+    private final SimpleDoubleProperty improvementPercentage = new SimpleDoubleProperty();
+    private final SimpleDoubleProperty dailyBMI = new SimpleDoubleProperty(0);
+    private final SimpleDoubleProperty generalCalBurn;
 
-    DailyLog(SimpleIntegerProperty days, SimpleIntegerProperty months, SimpleIntegerProperty year) {
-        this.days = days;
-        this.months = months;
-        this.year = year;
-        SimpleStringProperty dateString = new SimpleStringProperty(
-                this.days.getValue() + "/" + this.months.getValue() + "/" + this.year.getValue());
-        this.date = dateString;
+    DailyLog(int days, int months, int year) {
+        this.days.set(days);
+        this.months.set(months);
+        this.year.set(year);
+        String dateString = this.days.getValue() + "/" + this.months.getValue() + "/" + this.year.getValue();
+        this.date.set(dateString);
         this.features = new ArrayList<Feature>();// use polymorphism here
         this.caloriesComsume = new SimpleDoubleProperty(2000);
         this.generalCalBurn = new SimpleDoubleProperty(0);
@@ -352,16 +328,18 @@ class DailyLog {
         this.generalCalBurn.subtract(cal);
     }
 
-    public void setImprovementPercentage(SimpleDoubleProperty improve) {
-        this.improvementPercentage = improve;
+    public void setImprovementPercentage(double improve) {
+        this.improvementPercentage.set(improve);
+        ;
     }
 
     public SimpleDoubleProperty getImprovementPercentage() {
         return this.improvementPercentage;
     }
 
-    public void setDailyBMI(SimpleDoubleProperty bmi) {
-        this.dailyBMI = bmi;
+    public void setDailyBMI(double bmi) {
+        this.dailyBMI.set(bmi);
+        ;
     }
 
     public void addFeature(Exercise exercises) {
@@ -519,7 +497,7 @@ class DailyLog {
 class FitnessHistory {
     // holds the history of the user
     private ArrayList<DailyLog> history;
-    private SimpleIntegerProperty currentIndex = new SimpleIntegerProperty(0);
+    private final SimpleIntegerProperty currentIndex = new SimpleIntegerProperty(0);
 
     FitnessHistory() {
         this.history = new ArrayList<>();
@@ -529,8 +507,8 @@ class FitnessHistory {
         return this.currentIndex;
     }
 
-    public void setCurrentIndex(SimpleIntegerProperty current) {
-        this.currentIndex = current;
+    public void setCurrentIndex(int current) {
+        this.currentIndex.set(current);
     }
 
     List<DailyLog> getHistory() {
@@ -549,12 +527,10 @@ class FitnessHistory {
         this.history.add(dailyLog);
     }
 
-    public DailyLog getDailyLog(SimpleIntegerProperty day, SimpleIntegerProperty month, SimpleIntegerProperty year) {
-        SimpleStringProperty date = new SimpleStringProperty(
-                day.getValue() + "/" + month.getValue() + "/" + year.getValue());
+    public DailyLog getDailyLog(int day, int month, int year) {
         for (DailyLog log : this.history) {
-            if (day.getValue() == log.getDays().getValue() && month.getValue() == log.getMonths().getValue()
-                    && year.getValue() == log.getYear().getValue()) {
+            if (day == log.getDays().getValue() && month == log.getMonths().getValue()
+                    && year == log.getYear().getValue()) {
                 return log;
             }
         }
@@ -576,7 +552,8 @@ class FitnessHistory {
     }
 
     // method to allow the user to view all of the history but with less details
-    void viewFitnessHistory(CalculateExcerciseCalories c) {
+    void viewFitnessHistory(CalculateExcerciseCalories c) { // ATENTION: THIS METHOD ONLY USED FOR DEBUG AND TESTING
+                                                            // PURPOSE
         if (this.history.isEmpty()) {
             System.out.println("No fitness history available.");
             return;
@@ -617,8 +594,8 @@ class FitnessHistory {
 class AdminUser extends User {
     Systems supervisedSystem;
 
-    AdminUser(Systems supervisedSystem, SimpleStringProperty username, SimpleStringProperty password,
-            SimpleStringProperty email) {
+    AdminUser(Systems supervisedSystem, String username, String password,
+            String email) {
         super(username, password, email);
         this.supervisedSystem = supervisedSystem;
     }
@@ -628,7 +605,56 @@ class AdminUser extends User {
     }
 
     public boolean VerifyKey(SimpleStringProperty key) {
-        return key == this.password;
+        return key.get().equals(this.password.get());
     }
 
+}
+
+class CaloriesCalulator {
+    private ExerciseType exerciseType = ExerciseType.PUSH_UPS;
+    private final SimpleDoubleProperty hours = new SimpleDoubleProperty();
+    private final SimpleIntegerProperty repetition = new SimpleIntegerProperty();
+    private final SimpleDoubleProperty calBurnHour = new SimpleDoubleProperty();
+    private final SimpleDoubleProperty calBurnRep = new SimpleDoubleProperty();
+    private final SimpleDoubleProperty weight = new SimpleDoubleProperty();
+
+    CaloriesCalulator() {
+        this.calBurnHour.bind((exerciseType.METvalue.multiply(weight))
+                .divide(exerciseType.amountOfExercisePerMinute.multiply(60))
+                .multiply(repetition));
+        this.calBurnRep.bind((exerciseType.METvalue.multiply(weight)).multiply(hours));
+
+    }
+
+    SimpleDoubleProperty getHour() {
+        return this.hours;
+    }
+
+    SimpleIntegerProperty getRep() {
+        return this.repetition;
+    }
+
+    public SimpleDoubleProperty getCalorieHour() {
+        return this.calBurnHour;
+    }
+
+    public SimpleDoubleProperty getCalorieRep() {
+        return this.calBurnRep;
+    }
+
+    public void changeHour(final double hour) {
+        this.hours.set(hour);
+    }
+
+    public void changeRep(final int rep) {
+        this.repetition.set(rep);
+    }
+
+    public void setWeight(double weight) {
+        this.weight.set(weight);
+    }
+
+    public void changeExcerciseType(ExerciseType exerciseType) {
+        this.exerciseType = exerciseType;
+    }
 }
