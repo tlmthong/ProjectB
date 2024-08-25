@@ -1,6 +1,5 @@
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
-import java.util.ArrayList;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 
@@ -37,29 +36,10 @@ public class AppController {
     }
 
     public void reformatHistory() {
-        ArrayList<DailyLog> oldArray = this.system.getCurrentUser().getFitnessHistory().sortedHistory();
-        FitnessHistory formattedFitnessHistory = new FitnessHistory();
-        this.system.getCurrentUser().setInitalBMI();
-        this.system.getCurrentUser().setInitalWeight();
-        this.system.getCurrentUser().setHistory(formattedFitnessHistory);
-        for (DailyLog dailyLog : oldArray) {
-            DailyLog workingDaily = new DailyLog(dailyLog.getDays().get(), dailyLog.getMonths().get(),
-                    dailyLog.getYear().get());
-            system.getCurrentUser().getFitnessHistory().addOrUpdateDailyLog(workingDaily);
-            for (Feature feature : dailyLog.getFeatures()) {
-                if (feature instanceof PhysicalMonitor) {
-                    workingDaily.addFeature(((PhysicalMonitor) feature).getExercises());
-                    system.getCurrentUser().calculateCalories(workingDaily);
-                    system.getCurrentUser().calculateImprovement(workingDaily, system.getCurrentUser().getGoal());
-                } else {
-                    workingDaily.addFeature(feature);
-                }
-            }
-        }
+        this.system.getCurrentUser().reformatHistory();
     }
 
     public void addupdateDailyLog(DailyLog dailyLog, ExerciseType exercisetype, String rep) {
-        DailyLog daily = this.system.getCurrentUser().getFitnessHistory().getDailyLog(dailyLog);
         Exercise exercise;
         if (system.getCurrentUser().getCaloriesCalculation() == CalculateExcerciseCalories.DURATION_OF_EXCERCISE) {
             double repetition = convertStringToDouble(rep);
@@ -68,7 +48,7 @@ public class AppController {
             int repetition = convertStringToInt(rep);
             exercise = new Exercise(new SimpleDoubleProperty(0), new SimpleIntegerProperty(repetition), exercisetype);
         }
-        daily.setFeature(exercise);
+        dailyLog.setFeature(exercise);
         reformatHistory();
     }
 
@@ -79,27 +59,17 @@ public class AppController {
 
     public void addExercise(int day, int month, int year,
             ExerciseType exerciseType, SimpleIntegerProperty repetitions) {
-        // controller: retrieve or create DailyLog
         DailyLog dailyLog = system.getCurrentUser().getFitnessHistory().getDailyLog(day, month, year);
         if (dailyLog == null) {
             dailyLog = new DailyLog(day, month, year);
         }
 
-        // controller: create Exercise object
         SimpleDoubleProperty hours = new SimpleDoubleProperty(0); // Set to 0 as we're using repetitions
         SimpleIntegerProperty count = repetitions;
         Exercise exercise = new Exercise(hours, count, exerciseType);
-
-        // model: add exercise to DailyLog
         dailyLog.addFeature(exercise);
-
-        // model: update FitnessHistory
         system.getCurrentUser().getFitnessHistory().addOrUpdateDailyLog(dailyLog);
-
-        //  model: calculate calories
         system.getCurrentUser().calculateCalories(dailyLog);
-
-        // model: calculate improvement
         system.getCurrentUser().calculateImprovement(dailyLog, system.getCurrentUser().getGoal());
     }
 

@@ -23,6 +23,10 @@ public class FitnessUser extends User implements UserAuthentication {
         this.goal = goal;
         this.password.set(password);
         this.bmi.set(this.weight.doubleValue() / ((this.height.doubleValue() * this.height.doubleValue())));
+        this.weight.addListener((obs, old, newWeight) -> {
+            this.bmi.set(newWeight.doubleValue() / ((this.height.doubleValue() * this.height.doubleValue())));
+        });
+        ;
         this.initialBMI.set(this.bmi.doubleValue());
         this.initialWeight.set(this.weight.doubleValue());
         ;
@@ -79,6 +83,28 @@ public class FitnessUser extends User implements UserAuthentication {
 
     }
 
+    public void reformatHistory() {
+        ArrayList<DailyLog> oldArray = this.getFitnessHistory().sortedHistory();
+        FitnessHistory formattedFitnessHistory = new FitnessHistory();
+        this.setInitalBMI();
+        this.setInitalWeight();
+        this.setHistory(formattedFitnessHistory);
+        for (DailyLog dailyLog : oldArray) {
+            DailyLog workingDaily = new DailyLog(dailyLog.getDays().get(), dailyLog.getMonths().get(),
+                    dailyLog.getYear().get());
+            getFitnessHistory().addOrUpdateDailyLog(workingDaily);
+            for (Feature feature : dailyLog.getFeatures()) {
+                if (feature instanceof PhysicalMonitor) {
+                    workingDaily.addFeature(((PhysicalMonitor) feature).getExercises());
+                    calculateCalories(workingDaily);
+                    calculateImprovement(workingDaily, getGoal());
+                } else {
+                    workingDaily.addFeature(feature);
+                }
+            }
+        }
+    }
+
     public CalculateExcerciseCalories getCalculate() {
         return this.caloriesCalculation;
     }
@@ -120,11 +146,11 @@ public class FitnessUser extends User implements UserAuthentication {
         ;
     }
 
-    public void updateBMI(double weight, DailyLog daily) {
-        this.bmi.set(weight / ((height.doubleValue() * height.doubleValue())));
+    // public void updateBMI(double weight, DailyLog daily) {
+    // this.bmi.set(weight / ((height.doubleValue() * height.doubleValue())));
 
-        daily.setDailyBMI(this.bmi.doubleValue());
-    }
+    // daily.setDailyBMI(this.bmi.doubleValue());
+    // }
 
     public String encrypt(String password) {
         String encryptString = "";
@@ -242,7 +268,6 @@ public class FitnessUser extends User implements UserAuthentication {
         double newWeight = this.weight.getValue() + weightChangeKg;
         this.weight.set(newWeight);
         ;
-        this.updateBMI(this.weight.doubleValue(), daily);
     }
 
     public void changePassword(String password) {
@@ -619,10 +644,10 @@ class CaloriesCalulator {
     private final SimpleDoubleProperty weight = new SimpleDoubleProperty();
 
     CaloriesCalulator() {
-        this.calBurnHour.bind((exerciseType.METvalue.multiply(weight))
+        this.calBurnRep.bind((exerciseType.METvalue.multiply(weight))
                 .divide(exerciseType.amountOfExercisePerMinute.multiply(60))
                 .multiply(repetition));
-        this.calBurnRep.bind((exerciseType.METvalue.multiply(weight)).multiply(hours));
+        this.calBurnHour.bind((exerciseType.METvalue.multiply(weight)).multiply(hours));
 
     }
 
